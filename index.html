@@ -327,7 +327,67 @@ body.ltr .watch-panel{right:auto;left:0;border-left:none;border-right:1px solid 
   .share-section{flex-direction:column;align-items:flex-start;}
   .modal-box{max-height:95vh;}
   .header-top-row,.header-bottom-row{justify-content:flex-start;}
+  .live-metrics{grid-template-columns:repeat(2,1fr);}
 }
+
+/* ══ LIVE DATA CARD ══ */
+.live-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;display:none;margin-bottom:20px;animation:fadeUp .4s ease;box-shadow:var(--card-shadow);}
+.live-card.visible{display:block;}
+.live-header{padding:20px 24px 14px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--border);}
+.live-price-block{display:flex;flex-direction:column;gap:2px;}
+.live-sym-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.live-sym{font-size:22px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);letter-spacing:2px;}
+.live-name{font-size:11px;color:var(--text-dim);}
+.live-exchange{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;background:var(--bg3);padding:2px 8px;border-radius:2px;}
+.live-price{font-size:38px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);line-height:1.1;margin-top:4px;}
+.live-change{font-size:14px;font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.live-change.up{color:var(--green);}
+.live-change.down{color:var(--red);}
+.live-market-state{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+.live-updated{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-align:end;}
+/* Chart */
+.chart-wrap{padding:14px 20px 6px;border-bottom:1px solid var(--border);}
+.chart-ranges{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+.chart-range-btn{background:var(--bg);border:1px solid var(--border);color:var(--text-dim);padding:4px 12px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border-radius:2px;transition:all .15s;}
+.chart-range-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+.chart-range-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08);}
+.chart-canvas-wrap{position:relative;height:180px;}
+#liveChart{width:100%;height:100%;}
+.chart-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+/* Live metrics grid */
+.live-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--border);}
+.live-metric{background:var(--bg2);padding:12px 16px;}
+.live-metric-lbl{font-size:8px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px;font-family:'IBM Plex Mono',monospace;}
+.live-metric-val{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text);}
+/* Analyst row */
+.live-analyst{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.live-analyst-item{display:flex;flex-direction:column;gap:2px;}
+.live-analyst-lbl{font-size:8px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.live-analyst-val{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+/* Company info */
+.live-company{padding:14px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim);line-height:1.7;}
+.live-company strong{color:var(--text);}
+/* AI CTA inside live card */
+.live-ai-cta{padding:14px 20px;border-top:1px solid var(--border);background:rgba(201,168,76,.04);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.live-ai-cta-text{font-size:12px;color:var(--text);line-height:1.5;}
+.btn-ai-analyze{background:linear-gradient(135deg,var(--gold),var(--gold-dim));border:none;padding:9px 20px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:700;letter-spacing:1px;color:#000;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;}
+.btn-ai-analyze:hover{opacity:.88;}
+
+/* ══ FX + CRYPTO STRIP ══ */
+.fx-section{background:var(--bg2);border:1px solid var(--border);border-radius:4px;margin-bottom:20px;overflow:hidden;}
+.fx-tabs{display:flex;border-bottom:1px solid var(--border);}
+.fx-tab{flex:1;padding:9px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;text-align:center;}
+.fx-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.fx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:1px;background:var(--border);}
+.fx-cell{background:var(--bg2);padding:10px 12px;text-align:center;}
+.fx-pair{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:4px;}
+.fx-rate{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text);}
+.fx-chg{font-size:9px;font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.fx-loading{padding:20px;text-align:center;font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+
+/* ══ GLOBAL DATA DISCLAIMER ══ */
+.data-disclaimer{background:rgba(201,168,76,.04);border:1px solid var(--border);border-radius:3px;padding:8px 14px;margin-bottom:16px;font-size:9px;color:var(--text-muted);line-height:1.6;text-align:center;}
+.data-disclaimer .dd-link{color:var(--gold-dim);cursor:pointer;text-decoration:underline;}
 </style>
 </head>
 <body class="ltr" id="appBody">
@@ -341,7 +401,7 @@ body.ltr .watch-panel{right:auto;left:0;border-left:none;border-right:1px solid 
 </div>
 
 <script>
-var curLang=localStorage.getItem('stockai_lang')||'en';
+var curLang=localStorage.getItem('stockai_lang')||'he';
 var LANG={
 en:{subtitle:'US & Israel Markets — Real-time AI — Market Sentiment',searchLabel:'◈ Enter a stock symbol to analyze',placeholder:'AAPL / TSLA / TEVA...',btnAnalyze:'▶ Analyze',btnAnalyzing:'Analyzing...',loadStep1:'◈ Scanning real-time market data...',loadStep2:'◈ Checking analyst recommendations...',loadStep3:'◈ Analyzing social media sentiment...',loadStep4:'◈ Processing financial data...',metricPrice:'Current Price',metricTarget:'Price Target',metricAnalyst:'Analyst Rating',metricRisk:'Risk Level',confLabel:'Recommendation Confidence',secSummary:'◈ Analysis Summary',secBull:'▲ Bullish Factors',secBear:'▼ Bearish Factors',sigSocial:'Social Sentiment',sigTech:'Technical Signal',sigFund:'Fundamental Score',secSources:'◈ Sources',historyLabel:'◈ Recent Analyses',disclaimer:'⚠ For research purposes only — not investment advice. All decisions are solely the investor\'s responsibility.',errGeneral:'Error analyzing stock',errNoAI:'⚠ No AI connected. Please tap ⚙ to connect your AI first.',recBuy:'BUY',recSell:'SELL',recHold:'HOLD',riskLow:'Low',riskMed:'Medium',riskHigh:'High',sentPos:'Positive',sentNeu:'Neutral',sentNeg:'Negative',techUp:'Rising',techDown:'Falling',techNeu:'Neutral',confHigh:'High',confMed:'Medium',confLow:'Low',shareBtn:'⬡ Share App',shareTitle:'StockAI — Smart Stock Analysis',shareText:'Discover StockAI — Real-time AI stock analysis for US & Israel markets.',moreApps:'More apps by AppNest',watchlistBtn:'◈ Watchlist',watchPanelTitle:'My Watchlist',tabMine:'My Stocks',tabIsrael:'Israel Top',tabUS:'US Top',addPlaceholder:'Add symbol...',addBtn:'+ Add',analyzeAll:'▶ Analyze All',watchEmpty:'Your watchlist is empty.\nAdd stocks to track them.',watchEmptyIcon:'◈',backupExport:'⬇ Export',backupImport:'⬆ Import',addToWatch:'+ Watchlist',addedToWatch:'✓ Watching',analyzeBtn:'▶ Analyze',staleMsg:'Analysis from {ago} ago',staleRefresh:'↺ Refresh',pwaTitle:'Install StockAI',pwaText:'Add to home screen — use as an app!',pwaInstall:'Install',pwaDismiss:'Not now',aiConnected:'Connected',aiNotConnected:'Not connected',aiSetupTitle:'Connect Your AI',guideTitle:'User Guide',guideTab1:'App Guide',guideTab5:'On-Device'},
 he:{subtitle:'בורסות ארה"ב וישראל — AI בזמן אמת — סנטימנט שוק',searchLabel:'◈ הזן סימבול מניה לניתוח',placeholder:'AAPL / TSLA / TEVA...',btnAnalyze:'▶ נתח',btnAnalyzing:'מנתח...',loadStep1:'◈ סורק נתוני שוק בזמן אמת...',loadStep2:'◈ בודק המלצות אנליסטים...',loadStep3:'◈ מנתח סנטימנט רשתות חברתיות...',loadStep4:'◈ מעבד נתונים פיננסיים...',metricPrice:'מחיר נוכחי',metricTarget:'יעד מחיר',metricAnalyst:'דירוג אנליסטים',metricRisk:'רמת סיכון',confLabel:'רמת ביטחון בהמלצה',secSummary:'◈ סיכום ניתוח',secBull:'▲ גורמים חיוביים',secBear:'▼ גורמים שליליים',sigSocial:'סנטימנט חברתי',sigTech:'אינדיקטור טכני',sigFund:'ציון פנדמנטלי',secSources:'◈ מקורות',historyLabel:'◈ ניתוחים אחרונים',disclaimer:'⚠ למטרות מחקר בלבד — אינה ייעוץ השקעות.',errGeneral:'שגיאה בניתוח המניה',errNoAI:'⚠ לא מחובר ל-AI. לחץ ⚙ כדי לחבר את ה-AI שלך.',recBuy:'קנה',recSell:'מכור',recHold:'החזק',riskLow:'נמוך',riskMed:'בינוני',riskHigh:'גבוה',sentPos:'חיובי',sentNeu:'ניטרלי',sentNeg:'שלילי',techUp:'עולה',techDown:'יורד',techNeu:'ניטרלי',confHigh:'גבוה',confMed:'בינוני',confLow:'נמוך',shareBtn:'⬡ שתף',shareTitle:'StockAI — ניתוח מניות חכם',shareText:'גלה את StockAI — אנליזת מניות בזמן אמת עם AI.',moreApps:'עוד אפליקציות AppNest',watchlistBtn:'◈ מעקב',watchPanelTitle:'רשימת המעקב שלי',tabMine:'המניות שלי',tabIsrael:'מובילות ישראל',tabUS:'מובילות ארה"ב',addPlaceholder:'הוסף סימבול...',addBtn:'+ הוסף',analyzeAll:'▶ נתח הכל',watchEmpty:'רשימת המעקב שלך ריקה.\nהוסף מניות לעקוב אחריהן.',watchEmptyIcon:'◈',backupExport:'⬇ גבה',backupImport:'⬆ שחזר',addToWatch:'+ מעקב',addedToWatch:'✓ במעקב',analyzeBtn:'▶ נתח',staleMsg:'ניתוח מלפני {ago}',staleRefresh:'↺ רענן',pwaTitle:'התקן את StockAI',pwaText:'הוסף למסך הבית — השתמש כאפליקציה!',pwaInstall:'התקן',pwaDismiss:'לא עכשיו',aiConnected:'מחובר',aiNotConnected:'לא מחובר',aiSetupTitle:'חבר את ה-AI שלך',guideTitle:'מדריך משתמש',guideTab1:'מדריך האפליקציה',guideTab5:'במכשיר'},
@@ -370,8 +430,8 @@ function renderText(){
 </script>
 
 <!-- TICKER -->
-<div class="ticker-wrap"><div class="ticker-track">
-<span class="ticker-item">AAPL <span>+2.1%</span></span><span class="ticker-item">TSLA <span>+4.7%</span></span><span class="ticker-item">NVDA <span>+3.2%</span></span><span class="ticker-item">TEVA <span>+1.8%</span></span><span class="ticker-item">MSFT <span>+0.9%</span></span><span class="ticker-item">GOOGL <span>+1.4%</span></span><span class="ticker-item">CHKP <span>+2.3%</span></span><span class="ticker-item">MNDY <span>+5.1%</span></span><span class="ticker-item">WIX <span>+3.8%</span></span><span class="ticker-item">NICE <span>+1.2%</span></span><span class="ticker-item">AAPL <span>+2.1%</span></span><span class="ticker-item">TSLA <span>+4.7%</span></span><span class="ticker-item">NVDA <span>+3.2%</span></span><span class="ticker-item">TEVA <span>+1.8%</span></span><span class="ticker-item">MSFT <span>+0.9%</span></span><span class="ticker-item">GOOGL <span>+1.4%</span></span><span class="ticker-item">CHKP <span>+2.3%</span></span><span class="ticker-item">MNDY <span>+5.1%</span></span><span class="ticker-item">WIX <span>+3.8%</span></span><span class="ticker-item">NICE <span>+1.2%</span></span>
+<div class="ticker-wrap"><div class="ticker-track" id="tickerTrack">
+<span class="ticker-item" style="color:var(--text-muted)">◈ StockAI — Loading live market data...</span>
 </div></div>
 
 <!-- HEADER -->
@@ -437,6 +497,49 @@ function renderText(){
       <button class="pick-btn" onclick="quickAnalyze('WIX')">WIX</button>
       <button class="pick-btn" onclick="quickAnalyze('NICE')">NICE</button>
     </div>
+  </div>
+
+  <!-- ══ DATA DISCLAIMER ══ -->
+  <div class="data-disclaimer" id="dataDisclaimer"></div>
+
+  <!-- ══ LIVE DATA CARD — נתונים חיים בחינם ══ -->
+  <div class="live-card" id="liveCard">
+    <div class="live-header">
+      <div class="live-price-block">
+        <div class="live-sym-row">
+          <span class="live-sym" id="lvSym"></span>
+          <span class="live-exchange" id="lvExchange"></span>
+        </div>
+        <div class="live-name" id="lvName"></div>
+        <div class="live-price" id="lvPrice"></div>
+        <div class="live-change" id="lvChange"></div>
+        <div class="live-market-state" id="lvMarketState"></div>
+      </div>
+      <div class="live-updated" id="lvUpdated"></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-ranges" id="chartRanges"></div>
+      <div class="chart-canvas-wrap">
+        <canvas id="liveChart"></canvas>
+        <div class="chart-loading" id="chartLoading" style="display:none"></div>
+      </div>
+    </div>
+    <div class="live-metrics" id="lvMetrics"></div>
+    <div class="live-analyst" id="lvAnalyst" style="display:none"></div>
+    <div class="live-company" id="lvCompany" style="display:none"></div>
+    <div class="live-ai-cta" id="lvAiCta">
+      <div class="live-ai-cta-text" id="lvAiCtaText"></div>
+      <button class="btn-ai-analyze" id="btnAiFromLive" onclick="analyzeStock(currentLiveSymbol)"></button>
+    </div>
+  </div>
+
+  <!-- ══ FX + CRYPTO ══ -->
+  <div class="fx-section" id="fxSection">
+    <div class="fx-tabs">
+      <button class="fx-tab active" id="fxtab-forex" onclick="switchFxTab('forex')"></button>
+      <button class="fx-tab" id="fxtab-crypto" onclick="switchFxTab('crypto')"></button>
+    </div>
+    <div id="fxContent"><div class="fx-loading">◈ ...</div></div>
   </div>
 
   <div class="loading-box" id="loadingBox">
@@ -588,6 +691,25 @@ var US_STOCKS=[
   {sym:'UNH',name:'UnitedHealth'},{sym:'XOM',name:'Exxon Mobil'}
 ];
 var AI_SYSTEM='You are a professional stock analyst. Search for current data and return ONLY a JSON object (no backticks, no markdown, no extra text) with this exact structure:\n{"symbol":"TICKER","companyName":"Full Name","currentPrice":"$XXX","recommendation":"BUY","confidenceScore":75,"priceTarget":"$XXX","summary":"2-3 sentence analysis","bullishFactors":["factor1","factor2","factor3"],"bearishFactors":["factor1","factor2"],"analystRating":"Buy/Hold/Sell","socialSentiment":"POSITIVE","technicalSignal":"UP","fundamentalScore":70,"riskLevel":"MEDIUM","sources":["source1","source2"]}\nRecommendation must be exactly BUY, SELL, or HOLD. socialSentiment must be POSITIVE, NEUTRAL, or NEGATIVE. technicalSignal must be UP, DOWN, or NEUTRAL. riskLevel must be LOW, MEDIUM, or HIGH.';
+
+/* ══════════════════════════════════════════════════
+   MARKET DATA WORKER — נתונים חיים בחינם
+   ⚠ החלף את הכתובת אחרי יצירת ה-Worker שלך!
+══════════════════════════════════════════════════ */
+var DATA_WORKER_URL='https://stockai-data.barakaflalo4780.workers.dev';
+
+async function workerFetch(params){
+  var res=await fetch(DATA_WORKER_URL+'/?'+params+'&t='+Date.now());
+  if(!res.ok)throw new Error('Data worker HTTP '+res.status);
+  var data=await res.json();
+  if(!data.ok)throw new Error(data.error||'Worker error');
+  return data;
+}
+async function fetchLiveQuote(symbol){return await workerFetch('action=quote&symbol='+encodeURIComponent(symbol));}
+async function fetchLiveChart(symbol,range){return await workerFetch('action=chart&symbol='+encodeURIComponent(symbol)+'&range='+range);}
+async function fetchLiveTicker(symbols){return await workerFetch('action=ticker&symbols='+encodeURIComponent(symbols.join(',')));}
+async function fetchLiveForex(){return await workerFetch('action=forex');}
+async function fetchLiveCrypto(){return await workerFetch('action=crypto');}
 
 /* ══════════════════════════════════════════════════
    THEME
@@ -1535,12 +1657,14 @@ function refreshAnalysis(){var sym=document.getElementById('rSym').textContent;i
 ══════════════════════════════════════════════════ */
 var analysisHistory=[];
 var currentSymbol='';
-function quickAnalyze(sym){document.getElementById('stockInput').value=sym;analyzeStock(sym);}
+function quickAnalyze(sym){document.getElementById('stockInput').value=sym;loadLiveData(sym);}
 
 async function analyzeStock(forceSym){
   var symbol=forceSym||(document.getElementById('stockInput').value.trim().toUpperCase());
   if(!symbol)return;
   var cfg=loadAIConfig();
+  // Always load live data (free, no AI needed)
+  if(currentLiveSymbol!==symbol)loadLiveData(symbol);
   if(!cfg.provider){showError(T('errNoAI'));openSetup();return;}
   currentSymbol=symbol;
   setLoading(true,symbol);hideStaleBar();
@@ -1552,6 +1676,25 @@ async function analyzeStock(forceSym){
     if(isStale(symbol)){var e=getAnalysisCache()[symbol];if(e)showStaleBar(symbol,e.ts);}
   }catch(err){showError(T('errGeneral')+': '+err.message);}
   finally{setLoading(false,symbol);}
+}
+
+/* Build real-time data context for AI prompt injection */
+function buildLiveContext(symbol){
+  var q=window.__lastLiveQuote;
+  if(!q||q.symbol!==symbol)return '';
+  var parts=['REAL-TIME MARKET DATA (from Yahoo Finance, fetched '+new Date().toLocaleString()+'):'];
+  if(q.regularPrice!=null)parts.push('Current price: '+q.regularPrice+' '+(q.currency||'USD')+' ('+fmtPct(q.regularChangePct)+' today)');
+  if(q.open!=null)parts.push('Open: '+q.open+', Day range: '+q.dayLow+'-'+q.dayHigh);
+  if(q.week52Low!=null)parts.push('52-week range: '+q.week52Low+'-'+q.week52High);
+  if(q.marketCap)parts.push('Market cap: '+fmtNum(q.marketCap));
+  if(q.peRatio)parts.push('P/E: '+Math.round(q.peRatio*100)/100+(q.eps?', EPS: '+Math.round(q.eps*100)/100:''));
+  if(q.volume)parts.push('Volume: '+fmtNum(q.volume)+(q.avgVolume?' (avg: '+fmtNum(q.avgVolume)+')':''));
+  if(q.targetMean)parts.push('Analyst mean target: '+q.targetMean+(q.recommendationKey?', consensus: '+q.recommendationKey:'')+(q.numberOfAnalysts?' ('+q.numberOfAnalysts+' analysts)':''));
+  if(q.dividendYield)parts.push('Dividend yield: '+(Math.round(q.dividendYield*10000)/100)+'%');
+  if(q.beta)parts.push('Beta: '+Math.round(q.beta*100)/100);
+  if(q.sector)parts.push('Sector: '+q.sector+(q.industry?' / '+q.industry:''));
+  if(q.earningsDate)parts.push('Next earnings: '+q.earningsDate);
+  return parts.join('\n')+'\n\nUse this VERIFIED real-time data as the factual basis for prices and fundamentals. ';
 }
 
 async function fetchAnalysis(symbol){
@@ -1576,7 +1719,7 @@ async function fetchClaude(symbol,apiKey){
   if(!apiKey)throw new Error('Claude API key not set');
   var body={model:'claude-sonnet-4-20250514',max_tokens:3000,system:AI_SYSTEM,
     tools:[{type:'web_search_20250305',name:'web_search'}],
-    messages:[{role:'user',content:'Search the web for current stock data and analyze: '+symbol+'. Return ONLY the JSON object as specified in the system prompt.'}]
+    messages:[{role:'user',content:buildLiveContext(symbol)+'Search the web for current stock data and analyze: '+symbol+'. Return ONLY the JSON object as specified in the system prompt.'}]
   };
   var res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
@@ -1617,7 +1760,7 @@ async function fetchOpenAI(symbol,apiKey,endpoint,model){
   var res=await fetch(endpoint,{
     method:'POST',headers:headers,
     body:JSON.stringify({model:model,max_tokens:2000,
-      messages:[{role:'system',content:AI_SYSTEM},{role:'user',content:'Analyze stock '+symbol+'. Return ONLY the JSON object, no other text.'}]})
+      messages:[{role:'system',content:AI_SYSTEM},{role:'user',content:buildLiveContext(symbol)+'Analyze stock '+symbol+'. Return ONLY the JSON object, no other text.'}]})
   });
   if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error((e.error&&e.error.message)||'HTTP '+res.status);}
   var data=await res.json();
@@ -1630,7 +1773,7 @@ async function fetchGemini(symbol,apiKey){
   var url='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+apiKey;
   var res=await fetch(url,{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{text:AI_SYSTEM+'\n\nNow analyze stock: '+symbol+'. Return ONLY the JSON object, absolutely no other text or formatting.'}]}],
+    body:JSON.stringify({contents:[{parts:[{text:AI_SYSTEM+'\n\n'+buildLiveContext(symbol)+'Now analyze stock: '+symbol+'. Return ONLY the JSON object, absolutely no other text or formatting.'}]}],
       generationConfig:{temperature:0.3,maxOutputTokens:2000}})
   });
   if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error((e.error&&e.error.message)||'HTTP '+res.status);}
@@ -1764,21 +1907,292 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
 /* ══════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   LIVE MARKET DATA — טיקר, כרטיס נתונים, גרף, מט"ח
+══════════════════════════════════════════════════ */
+var LIVE_T={
+  he:{updated:'עודכן',open:'פתיחה',high:'גבוה יומי',low:'נמוך יומי',volume:'מחזור',avgVol:'מחזור ממוצע',mcap:'שווי שוק',pe:'מכפיל רווח',eps:'רווח למניה',beta:'בטא',div:'תשואת דיבידנד',w52:'טווח 52 שבועות',target:'יעד אנליסטים',analysts:'אנליסטים',rec:'קונצנזוס',earnings:'דוח קרוב',sector:'סקטור',employees:'עובדים',aiCta:'רוצה ניתוח AI חכם של המניה?',aiCtaNoKey:'חבר AI בחינם (2 דק\') וקבל ניתוח קנה/מכור מלא',btnAnalyze:'▶ ניתוח AI',btnConnect:'⚙ חבר AI',forex:'💱 מט"ח',crypto:'₿ קריפטו',preMarket:'טרום מסחר',postMarket:'אחרי מסחר',marketOpen:'● שוק פתוח',marketClosed:'○ שוק סגור',dataErr:'שגיאה בטעינת נתונים — נסה שוב',disclaimer:'⚠ הנתונים נשאבים ממקורות חיצוניים ברשת (Yahoo Finance ואחרים) ומוצגים לנוחות בלבד. ייתכנו עיכובים, טעויות או אי-דיוקים. יש לאמת כל נתון מול מקור מוסמך לפני קבלת החלטה. האפליקציה והמפתחים אינם אחראים לכל נזק או הפסד.',rangeD:'יום',rangeW:'שבוע',rangeM:'חודש',range6M:'חצי שנה',rangeY:'שנה',range5Y:'5 שנים'},
+  en:{updated:'Updated',open:'Open',high:'Day High',low:'Day Low',volume:'Volume',avgVol:'Avg Volume',mcap:'Market Cap',pe:'P/E Ratio',eps:'EPS',beta:'Beta',div:'Dividend Yield',w52:'52W Range',target:'Analyst Target',analysts:'Analysts',rec:'Consensus',earnings:'Next Earnings',sector:'Sector',employees:'Employees',aiCta:'Want a smart AI analysis of this stock?',aiCtaNoKey:'Connect AI for free (2 min) and get full BUY/SELL analysis',btnAnalyze:'▶ AI Analysis',btnConnect:'⚙ Connect AI',forex:'💱 Forex',crypto:'₿ Crypto',preMarket:'Pre-Market',postMarket:'After Hours',marketOpen:'● Market Open',marketClosed:'○ Market Closed',dataErr:'Error loading data — try again',disclaimer:'⚠ Data is sourced from external web sources (Yahoo Finance and others) and shown for convenience only. Delays, errors or inaccuracies may occur. Verify all data with an authorized source before making decisions. The app and developers bear no responsibility for any damage or loss.',rangeD:'1D',rangeW:'1W',rangeM:'1M',range6M:'6M',rangeY:'1Y',range5Y:'5Y'},
+  ru:{updated:'Обновлено',open:'Открытие',high:'Макс. дня',low:'Мин. дня',volume:'Объём',avgVol:'Ср. объём',mcap:'Капитализация',pe:'P/E',eps:'EPS',beta:'Бета',div:'Дивиденд',w52:'Диапазон 52 нед.',target:'Цель аналитиков',analysts:'Аналитики',rec:'Консенсус',earnings:'Ближ. отчёт',sector:'Сектор',employees:'Сотрудники',aiCta:'Хотите умный ИИ-анализ этой акции?',aiCtaNoKey:'Подключите ИИ бесплатно (2 мин) и получите полный анализ',btnAnalyze:'▶ ИИ Анализ',btnConnect:'⚙ Подключить ИИ',forex:'💱 Валюты',crypto:'₿ Крипто',preMarket:'Премаркет',postMarket:'Постмаркет',marketOpen:'● Рынок открыт',marketClosed:'○ Рынок закрыт',dataErr:'Ошибка загрузки — попробуйте снова',disclaimer:'⚠ Данные получены из внешних источников (Yahoo Finance и др.) и показаны для удобства. Возможны задержки и неточности. Проверяйте данные в официальных источниках. Приложение и разработчики не несут ответственности.',rangeD:'1Д',rangeW:'1Н',rangeM:'1М',range6M:'6М',rangeY:'1Г',range5Y:'5Л'},
+  es:{updated:'Actualizado',open:'Apertura',high:'Máx. día',low:'Mín. día',volume:'Volumen',avgVol:'Vol. promedio',mcap:'Cap. mercado',pe:'P/E',eps:'EPS',beta:'Beta',div:'Dividendo',w52:'Rango 52 sem.',target:'Objetivo analistas',analysts:'Analistas',rec:'Consenso',earnings:'Próx. reporte',sector:'Sector',employees:'Empleados',aiCta:'¿Quieres un análisis IA inteligente?',aiCtaNoKey:'Conecta IA gratis (2 min) y obtén análisis completo',btnAnalyze:'▶ Análisis IA',btnConnect:'⚙ Conectar IA',forex:'💱 Divisas',crypto:'₿ Cripto',preMarket:'Pre-mercado',postMarket:'Post-mercado',marketOpen:'● Mercado abierto',marketClosed:'○ Mercado cerrado',dataErr:'Error al cargar — intenta de nuevo',disclaimer:'⚠ Los datos provienen de fuentes externas (Yahoo Finance y otros) y se muestran solo por conveniencia. Pueden ocurrir retrasos o errores. Verifica con fuentes autorizadas antes de decidir. La app y los desarrolladores no asumen responsabilidad.',rangeD:'1D',rangeW:'1S',rangeM:'1M',range6M:'6M',rangeY:'1A',range5Y:'5A'},
+  ar:{updated:'تحديث',open:'الافتتاح',high:'أعلى اليوم',low:'أدنى اليوم',volume:'الحجم',avgVol:'متوسط الحجم',mcap:'القيمة السوقية',pe:'مكرر الربحية',eps:'ربح السهم',beta:'بيتا',div:'عائد التوزيع',w52:'نطاق 52 أسبوع',target:'هدف المحللين',analysts:'محللون',rec:'الإجماع',earnings:'التقرير القادم',sector:'القطاع',employees:'موظفون',aiCta:'تريد تحليل ذكاء اصطناعي ذكي؟',aiCtaNoKey:'اربط الذكاء الاصطناعي مجاناً (دقيقتان) واحصل على تحليل كامل',btnAnalyze:'▶ تحليل AI',btnConnect:'⚙ ربط AI',forex:'💱 عملات',crypto:'₿ كريبتو',preMarket:'قبل السوق',postMarket:'بعد السوق',marketOpen:'● السوق مفتوح',marketClosed:'○ السوق مغلق',dataErr:'خطأ في التحميل — حاول مجدداً',disclaimer:'⚠ البيانات مأخوذة من مصادر خارجية (Yahoo Finance وغيرها) وتُعرض للراحة فقط. قد تحدث تأخيرات أو أخطاء. تحقق من مصدر معتمد قبل اتخاذ القرار. التطبيق والمطورون غير مسؤولين عن أي ضرر.',rangeD:'يوم',rangeW:'أسبوع',rangeM:'شهر',range6M:'6ش',rangeY:'سنة',range5Y:'5س'}
+};
+function LT(k){var l=LIVE_T[curLang]||LIVE_T.en;return l[k]||LIVE_T.en[k]||k;}
+
+var currentLiveSymbol='';
+var currentChartRange='1mo';
+var TICKER_SYMBOLS=['AAPL','MSFT','NVDA','TSLA','GOOGL','AMZN','META','TEVA','CHKP','NICE','MNDY','WIX'];
+
+/* ── Number formatting ── */
+function fmtNum(n){
+  if(n==null||isNaN(n))return '—';
+  if(Math.abs(n)>=1e12)return (n/1e12).toFixed(2)+'T';
+  if(Math.abs(n)>=1e9)return (n/1e9).toFixed(2)+'B';
+  if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+'M';
+  if(Math.abs(n)>=1e3)return (n/1e3).toFixed(1)+'K';
+  return String(Math.round(n*100)/100);
+}
+function fmtPrice(n,cur){
+  if(n==null||isNaN(n))return '—';
+  var sym=cur==='ILS'?'₪':cur==='EUR'?'€':cur==='GBP'?'£':'$';
+  return sym+(Math.round(n*100)/100).toLocaleString();
+}
+function fmtPct(n){
+  if(n==null||isNaN(n))return '';
+  var v=Math.round(n*100)/100;
+  return (v>=0?'+':'')+v+'%';
+}
+
+/* ── LIVE TICKER ── */
+async function loadLiveTicker(){
+  try{
+    var data=await fetchLiveTicker(TICKER_SYMBOLS);
+    if(!data.quotes||!data.quotes.length)return;
+    var html='';
+    // duplicate for seamless loop
+    for(var loop=0;loop<2;loop++){
+      data.quotes.forEach(function(q){
+        var color=q.changePct>=0?'var(--green)':'var(--red)';
+        html+='<span class="ticker-item" style="cursor:pointer" onclick="quickLive(\''+q.symbol+'\')">'+q.symbol+' '+fmtPrice(q.price)+' <span style="color:'+color+'">'+fmtPct(q.changePct)+'</span></span>';
+      });
+    }
+    document.getElementById('tickerTrack').innerHTML=html;
+  }catch(e){/* keep loading msg quietly */}
+}
+
+/* ── LIVE QUOTE CARD ── */
+function quickLive(sym){document.getElementById('stockInput').value=sym;loadLiveData(sym);}
+
+async function loadLiveData(symbol){
+  symbol=(symbol||'').toUpperCase().trim();
+  if(!symbol)return;
+  currentLiveSymbol=symbol;
+  var card=document.getElementById('liveCard');
+  card.classList.add('visible');
+  document.getElementById('lvSym').textContent=symbol;
+  document.getElementById('lvName').textContent='...';
+  document.getElementById('lvPrice').textContent='...';
+  document.getElementById('lvChange').textContent='';
+  document.getElementById('lvMetrics').innerHTML='';
+  document.getElementById('lvAnalyst').style.display='none';
+  document.getElementById('lvCompany').style.display='none';
+  try{
+    var q=await fetchLiveQuote(symbol);
+    renderLiveQuote(q);
+    loadLiveChart(symbol,currentChartRange);
+  }catch(e){
+    document.getElementById('lvName').textContent=LT('dataErr');
+    document.getElementById('lvPrice').textContent='—';
+  }
+}
+
+function renderLiveQuote(q){
+  document.getElementById('lvSym').textContent=q.symbol||currentLiveSymbol;
+  document.getElementById('lvName').textContent=q.name||'';
+  document.getElementById('lvExchange').textContent=q.exchange||'';
+  document.getElementById('lvPrice').textContent=fmtPrice(q.regularPrice,q.currency);
+  var chgEl=document.getElementById('lvChange');
+  var chg=q.regularChange,pct=q.regularChangePct;
+  if(chg!=null){
+    var up=chg>=0;
+    chgEl.textContent=(up?'▲ ':'▼ ')+(up?'+':'')+(Math.round(chg*100)/100)+' ('+fmtPct(pct)+')';
+    chgEl.className='live-change '+(up?'up':'down');
+  }else{chgEl.textContent='';}
+  // Market state + pre/post
+  var stateEl=document.getElementById('lvMarketState');
+  var stateTxt=q.marketState==='REGULAR'?LT('marketOpen'):LT('marketClosed');
+  if(q.preMarketPrice!=null&&q.marketState==='PRE')stateTxt+=' · '+LT('preMarket')+': '+fmtPrice(q.preMarketPrice,q.currency)+' ('+fmtPct(q.preMarketChangePct)+')';
+  if(q.postMarketPrice!=null&&(q.marketState==='POST'||q.marketState==='POSTPOST'||q.marketState==='CLOSED'))stateTxt+=' · '+LT('postMarket')+': '+fmtPrice(q.postMarketPrice,q.currency)+' ('+fmtPct(q.postMarketChangePct)+')';
+  stateEl.textContent=stateTxt;
+  document.getElementById('lvUpdated').textContent=LT('updated')+': '+new Date().toLocaleTimeString();
+  // Metrics grid
+  var m=[];
+  function metric(lbl,val){if(val!=null&&val!=='—')m.push('<div class="live-metric"><div class="live-metric-lbl">'+lbl+'</div><div class="live-metric-val">'+val+'</div></div>');}
+  metric(LT('open'),fmtPrice(q.open,q.currency));
+  metric(LT('high'),fmtPrice(q.dayHigh,q.currency));
+  metric(LT('low'),fmtPrice(q.dayLow,q.currency));
+  metric(LT('volume'),fmtNum(q.volume));
+  metric(LT('avgVol'),fmtNum(q.avgVolume));
+  metric(LT('mcap'),q.marketCap?fmtNum(q.marketCap):null);
+  metric(LT('pe'),q.peRatio?String(Math.round(q.peRatio*100)/100):null);
+  metric(LT('eps'),q.eps?String(Math.round(q.eps*100)/100):null);
+  metric(LT('beta'),q.beta?String(Math.round(q.beta*100)/100):null);
+  metric(LT('div'),q.dividendYield?(Math.round(q.dividendYield*10000)/100)+'%':null);
+  metric(LT('w52'),q.week52Low&&q.week52High?fmtPrice(q.week52Low,q.currency)+' – '+fmtPrice(q.week52High,q.currency):null);
+  metric(LT('earnings'),q.earningsDate||null);
+  document.getElementById('lvMetrics').innerHTML=m.join('');
+  // Analyst row
+  var an=document.getElementById('lvAnalyst');
+  if(q.targetMean||q.recommendationKey){
+    var recColors={strong_buy:'var(--green)',buy:'var(--green)',hold:'var(--gold)',underperform:'var(--red)',sell:'var(--red)'};
+    var recNames={strong_buy:'Strong Buy',buy:'Buy',hold:'Hold',underperform:'Underperform',sell:'Sell'};
+    var h='';
+    if(q.targetMean)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('target')+'</div><div class="live-analyst-val" style="color:var(--gold)">'+fmtPrice(q.targetMean,q.currency)+(q.targetLow&&q.targetHigh?' <span style="font-size:9px;color:var(--text-muted)">('+fmtPrice(q.targetLow,q.currency)+'–'+fmtPrice(q.targetHigh,q.currency)+')</span>':'')+'</div></div>';
+    if(q.recommendationKey)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('rec')+'</div><div class="live-analyst-val" style="color:'+(recColors[q.recommendationKey]||'var(--text)')+'">'+(recNames[q.recommendationKey]||q.recommendationKey)+'</div></div>';
+    if(q.numberOfAnalysts)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('analysts')+'</div><div class="live-analyst-val">'+q.numberOfAnalysts+'</div></div>';
+    an.innerHTML=h;an.style.display='flex';
+  }else{an.style.display='none';}
+  // Company info
+  var co=document.getElementById('lvCompany');
+  if(q.sector||q.description){
+    var ch='';
+    if(q.sector)ch+='<strong>'+LT('sector')+':</strong> '+escHtml(q.sector)+(q.industry?' · '+escHtml(q.industry):'');
+    if(q.employees)ch+=' · <strong>'+LT('employees')+':</strong> '+fmtNum(q.employees);
+    if(q.description)ch+='<br>'+escHtml(q.description)+'...';
+    co.innerHTML=ch;co.style.display='block';
+  }else{co.style.display='none';}
+  // AI CTA
+  var cfg=loadAIConfig();
+  document.getElementById('lvAiCtaText').textContent=cfg.provider?LT('aiCta'):LT('aiCtaNoKey');
+  var btn=document.getElementById('btnAiFromLive');
+  btn.textContent=cfg.provider?LT('btnAnalyze'):LT('btnConnect');
+  btn.onclick=cfg.provider?function(){analyzeStock(currentLiveSymbol);}:function(){openSetup();};
+  // store quote for AI injection
+  window.__lastLiveQuote=q;
+}
+
+/* ── CHART ── */
+var CHART_RANGES=[['1d','rangeD'],['5d','rangeW'],['1mo','rangeM'],['6mo','range6M'],['1y','rangeY'],['5y','range5Y']];
+function renderChartRanges(){
+  var el=document.getElementById('chartRanges');el.innerHTML='';
+  CHART_RANGES.forEach(function(r){
+    var b=document.createElement('button');
+    b.className='chart-range-btn'+(r[0]===currentChartRange?' active':'');
+    b.textContent=LT(r[1]);
+    b.onclick=function(){currentChartRange=r[0];renderChartRanges();if(currentLiveSymbol)loadLiveChart(currentLiveSymbol,r[0]);};
+    el.appendChild(b);
+  });
+}
+async function loadLiveChart(symbol,range){
+  var loading=document.getElementById('chartLoading');
+  loading.style.display='flex';loading.textContent='◈ ...';
+  try{
+    var data=await fetchLiveChart(symbol,range);
+    drawChart(data.points||[],data.previousClose);
+    loading.style.display='none';
+  }catch(e){loading.textContent=LT('dataErr');}
+}
+function drawChart(points,prevClose){
+  var canvas=document.getElementById('liveChart');
+  var wrap=canvas.parentElement;
+  var dpr=window.devicePixelRatio||1;
+  var W=wrap.clientWidth,H=wrap.clientHeight;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  if(!points.length)return;
+  var vals=points.map(function(p){return p[1];});
+  var min=Math.min.apply(null,vals),max=Math.max.apply(null,vals);
+  if(min===max){min-=1;max+=1;}
+  var pad=(max-min)*0.08;min-=pad;max+=pad;
+  var isUp=vals[vals.length-1]>=vals[0];
+  var lineColor=isUp?'#4caf72':'#cf4a4a';
+  var mL=8,mR=54,mT=8,mB=18;
+  var cw=W-mL-mR,chh=H-mT-mB;
+  function px(i){return mL+(i/(points.length-1))*cw;}
+  function py(v){return mT+(1-(v-min)/(max-min))*chh;}
+  // grid lines + right axis labels
+  ctx.strokeStyle='rgba(128,128,128,0.12)';ctx.fillStyle='rgba(150,140,110,0.7)';
+  ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='left';
+  for(var g=0;g<=3;g++){
+    var gv=min+(max-min)*(g/3);var gy=py(gv);
+    ctx.beginPath();ctx.moveTo(mL,gy);ctx.lineTo(mL+cw,gy);ctx.stroke();
+    ctx.fillText(String(Math.round(gv*100)/100),mL+cw+5,gy+3);
+  }
+  // prev close dashed line
+  if(prevClose!=null&&prevClose>min&&prevClose<max){
+    ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(201,168,76,0.4)';
+    ctx.beginPath();ctx.moveTo(mL,py(prevClose));ctx.lineTo(mL+cw,py(prevClose));ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // gradient fill
+  var grad=ctx.createLinearGradient(0,mT,0,mT+chh);
+  grad.addColorStop(0,isUp?'rgba(76,175,114,0.22)':'rgba(207,74,74,0.22)');
+  grad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath();ctx.moveTo(px(0),py(vals[0]));
+  for(var i=1;i<points.length;i++)ctx.lineTo(px(i),py(vals[i]));
+  ctx.lineTo(px(points.length-1),mT+chh);ctx.lineTo(px(0),mT+chh);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  // line
+  ctx.beginPath();ctx.moveTo(px(0),py(vals[0]));
+  for(var j=1;j<points.length;j++)ctx.lineTo(px(j),py(vals[j]));
+  ctx.strokeStyle=lineColor;ctx.lineWidth=1.8;ctx.stroke();
+  // last point dot
+  ctx.beginPath();ctx.arc(px(points.length-1),py(vals[vals.length-1]),3,0,Math.PI*2);
+  ctx.fillStyle=lineColor;ctx.fill();
+  // time labels (first + last)
+  var isIntra=(currentChartRange==='1d'||currentChartRange==='5d');
+  ctx.fillStyle='rgba(150,140,110,0.6)';ctx.textAlign='left';
+  var d0=new Date(points[0][0]*1000),d1=new Date(points[points.length-1][0]*1000);
+  function lbl(d){return isIntra?d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'):(d.getMonth()+1)+'/'+(''+d.getFullYear()).slice(2);}
+  ctx.fillText(lbl(d0),mL,H-4);
+  ctx.textAlign='right';ctx.fillText(lbl(d1),mL+cw,H-4);
+}
+
+/* ── FOREX + CRYPTO ── */
+var fxTab='forex',fxData=null,cryptoData=null;
+function switchFxTab(tab){
+  fxTab=tab;
+  document.getElementById('fxtab-forex').classList.toggle('active',tab==='forex');
+  document.getElementById('fxtab-crypto').classList.toggle('active',tab==='crypto');
+  renderFx();
+}
+async function loadFxData(){
+  document.getElementById('fxtab-forex').textContent=LT('forex');
+  document.getElementById('fxtab-crypto').textContent=LT('crypto');
+  try{fxData=await fetchLiveForex();}catch(e){fxData=null;}
+  try{cryptoData=await fetchLiveCrypto();}catch(e){cryptoData=null;}
+  renderFx();
+}
+function renderFx(){
+  var el=document.getElementById('fxContent');
+  if(fxTab==='forex'){
+    if(!fxData){el.innerHTML='<div class="fx-loading">'+LT('dataErr')+'</div>';return;}
+    var r=fxData.rates||{};
+    var pairs=[['USD/ILS',r.ILS],['USD/EUR',r.EUR],['USD/GBP',r.GBP],['EUR/ILS',fxData.eurIls],['USD/JPY',r.JPY],['USD/CHF',r.CHF],['USD/CAD',r.CAD],['USD/RUB',r.RUB]];
+    var h='<div class="fx-grid">';
+    pairs.forEach(function(p){
+      if(p[1]==null)return;
+      h+='<div class="fx-cell"><div class="fx-pair">'+p[0]+'</div><div class="fx-rate">'+(Math.round(p[1]*10000)/10000)+'</div></div>';
+    });
+    h+='</div>';
+    el.innerHTML=h;
+  }else{
+    if(!cryptoData){el.innerHTML='<div class="fx-loading">'+LT('dataErr')+'</div>';return;}
+    var h2='<div class="fx-grid">';
+    (cryptoData.coins||[]).forEach(function(c){
+      var color=c.change24h>=0?'var(--green)':'var(--red)';
+      h2+='<div class="fx-cell"><div class="fx-pair">'+c.symbol+'/USD</div><div class="fx-rate">'+fmtPrice(c.usd)+'</div><div class="fx-chg" style="color:'+color+'">'+fmtPct(c.change24h)+'</div></div>';
+    });
+    h2+='</div>';
+    el.innerHTML=h2;
+  }
+}
+
+/* ── DATA DISCLAIMER ── */
+function renderDataDisclaimer(){
+  document.getElementById('dataDisclaimer').textContent=LT('disclaimer');
+}
+
 window.onload=function(){
   applyTheme();
   setLang(curLang);
   updateWatchCount();
   updateAIStatus();
   renderText();
+  renderDataDisclaimer();
+  renderChartRanges();
+  // Live market data — loads immediately, no AI needed
+  loadLiveTicker();
+  loadFxData();
+  // Refresh ticker every 60s, fx every 5min
+  setInterval(loadLiveTicker,60000);
+  setInterval(loadFxData,300000);
   // Splash: 1.8s then hide
   setTimeout(function(){
     var splash=document.getElementById('splash');
     splash.classList.add('hide');
     setTimeout(function(){splash.style.display='none';},600);
-    // First launch: auto-open AI setup
-    if(!loadAIConfig().provider){
-      setTimeout(function(){openSetup();},400);
-    }
   },1800);
 };
 </script>

@@ -50,8 +50,8 @@ body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url(
 @keyframes dotPulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
 
 /* TICKER */
-.ticker-wrap{background:var(--bg2);border-bottom:1px solid var(--border);overflow:hidden;height:32px;display:flex;align-items:center;position:relative;z-index:10;}
-.ticker-track{display:flex;gap:0;animation:ticker 40s linear infinite;white-space:nowrap;}
+.ticker-wrap{background:var(--bg2);border-bottom:1px solid var(--border);overflow:hidden;height:32px;display:flex;align-items:center;position:relative;z-index:10;direction:ltr;}
+.ticker-track{display:flex;gap:0;animation:ticker 40s linear infinite;white-space:nowrap;direction:ltr;}
 .ticker-item{padding:0 28px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--gold-dim);letter-spacing:1px;}
 .ticker-item span{color:var(--green);margin-right:4px;}
 @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
@@ -920,8 +920,7 @@ async function testAIConnection(){
     }else if(selectedAI==='gemini'){
       key=document.getElementById('key-gemini').value.trim();
       if(!key)throw new Error('No key');
-      var r3=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:testPrompt}]}]})});
-      if(!r3.ok){var e3=await r3.json().catch(function(){return{};});throw new Error((e3.error&&e3.error.message)||'HTTP '+r3.status);}
+      await geminiCall(key,testPrompt,10);
     }else if(selectedAI==='device'){
       var u=document.getElementById('key-device').value.trim()||'http://localhost:11434/v1';
       var r4=await fetch(u.replace(/\/+$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama3',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
@@ -1841,16 +1840,33 @@ async function fetchOpenAI(symbol,apiKey,endpoint,model){
   return parseAIResponse(text);
 }
 
+/* Gemini — שרשרת מודלים: מנסה מהחדש לישן עד שאחד עובד */
+var GEMINI_MODELS=['gemini-2.5-flash','gemini-2.0-flash','gemini-flash-latest','gemini-1.5-flash'];
+var __geminiWorking=localStorage.getItem('stockai_gemini_model')||null;
+async function geminiCall(apiKey,promptText,maxTokens){
+  var models=__geminiWorking?[__geminiWorking].concat(GEMINI_MODELS.filter(function(m){return m!==__geminiWorking;})):GEMINI_MODELS;
+  var lastErr=null;
+  for(var i=0;i<models.length;i++){
+    var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+models[i]+':generateContent?key='+apiKey,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:promptText}]}],generationConfig:{temperature:0.3,maxOutputTokens:maxTokens||2000}})
+    });
+    if(res.ok){
+      __geminiWorking=models[i];
+      localStorage.setItem('stockai_gemini_model',models[i]);
+      return await res.json();
+    }
+    var e=await res.json().catch(function(){return{};});
+    lastErr=new Error((e.error&&e.error.message)||'HTTP '+res.status);
+    // 404 = מודל לא קיים למפתח הזה — נסה את הבא. כל שגיאה אחרת (מפתח שגוי וכו') — עצור
+    if(res.status!==404)throw lastErr;
+  }
+  throw lastErr||new Error('No Gemini model available');
+}
+
 async function fetchGemini(symbol,apiKey){
   if(!apiKey)throw new Error('Gemini API key not set');
-  var url='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+apiKey;
-  var res=await fetch(url,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{text:AI_SYSTEM+'\n\n'+buildLiveContext(symbol)+'Now analyze stock: '+symbol+'. Return ONLY the JSON object, absolutely no other text or formatting.'}]}],
-      generationConfig:{temperature:0.3,maxOutputTokens:2000}})
-  });
-  if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error((e.error&&e.error.message)||'HTTP '+res.status);}
-  var data=await res.json();
+  var data=await geminiCall(apiKey,AI_SYSTEM+'\n\n'+buildLiveContext(symbol)+'Now analyze stock: '+symbol+'. Return ONLY the JSON object, absolutely no other text or formatting.',2000);
   var text=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text)||'';
   return parseAIResponse(text);
 }
@@ -1997,6 +2013,39 @@ var currentLiveSymbol='';
 var currentChartRange='1mo';
 var TICKER_SYMBOLS=['AAPL','MSFT','NVDA','TSLA','GOOGL','AMZN','META','NFLX','AMD','INTC','TEVA','CHKP','NICE','MNDY','WIX','CYBR','ESLT','GLBE'];
 
+/* ── TRANSLATION — תרגום נתונים לשפת הממשק ── */
+var __trCache={};
+async function trTexts(texts){
+  if(curLang==='en'||!texts.length)return texts;
+  var need=[],needIdx=[];
+  texts.forEach(function(t,i){
+    if(t&&__trCache[curLang+'|'+t]==null){need.push(t);needIdx.push(i);}
+  });
+  if(need.length){
+    try{
+      var res=await fetch(DATA_WORKER_URL+'/',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'translate',tl:curLang,texts:need})
+      });
+      var data=await res.json();
+      if(data.ok&&data.translations){
+        need.forEach(function(t,j){__trCache[curLang+'|'+t]=data.translations[j]||t;});
+      }
+    }catch(e){need.forEach(function(t){__trCache[curLang+'|'+t]=t;});}
+  }
+  return texts.map(function(t){return (t&&__trCache[curLang+'|'+t])||t;});
+}
+
+/* קונצנזוס אנליסטים — תרגום מקומי מדויק */
+var REC_T={
+  he:{strong_buy:'קנייה חזקה',buy:'קנייה',hold:'החזקה',underperform:'ביצוע חסר',sell:'מכירה',none:'—'},
+  en:{strong_buy:'Strong Buy',buy:'Buy',hold:'Hold',underperform:'Underperform',sell:'Sell',none:'—'},
+  ru:{strong_buy:'Активно покупать',buy:'Покупать',hold:'Держать',underperform:'Ниже рынка',sell:'Продавать',none:'—'},
+  es:{strong_buy:'Compra fuerte',buy:'Comprar',hold:'Mantener',underperform:'Bajo rendimiento',sell:'Vender',none:'—'},
+  ar:{strong_buy:'شراء قوي',buy:'شراء',hold:'احتفاظ',underperform:'أداء ضعيف',sell:'بيع',none:'—'}
+};
+function recLabel(key){var m=REC_T[curLang]||REC_T.en;return m[key]||key||'—';}
+
 /* ── Number formatting ── */
 function fmtNum(n){
   if(n==null||isNaN(n))return '—';
@@ -2085,9 +2134,16 @@ async function loadStockNews(symbol){
   try{
     var data=await workerFetch('action=news&symbol='+encodeURIComponent(symbol));
     if(!data.news||!data.news.length)return;
+    var items=data.news.slice(0,5);
+    // תרגום כותרות החדשות לשפת הממשק
+    if(curLang!=='en'){
+      var titles=items.map(function(n){return n.title||'';});
+      var translated=await trTexts(titles);
+      items.forEach(function(n,i){n.title=translated[i]||n.title;});
+    }
     var el=document.getElementById('lvNews');
     var h='<div class="live-news-title">'+LT('newsTitle')+'</div>';
-    data.news.slice(0,5).forEach(function(n){
+    items.forEach(function(n){
       var timeStr='';
       if(n.time){
         var mins=Math.floor((Date.now()-new Date(n.time).getTime())/60000);
@@ -2143,18 +2199,26 @@ function renderLiveQuote(q){
     var recNames={strong_buy:'Strong Buy',buy:'Buy',hold:'Hold',underperform:'Underperform',sell:'Sell'};
     var h='';
     if(q.targetMean)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('target')+'</div><div class="live-analyst-val" style="color:var(--gold)">'+fmtPrice(q.targetMean,q.currency)+(q.targetLow&&q.targetHigh?' <span style="font-size:9px;color:var(--text-muted)">('+fmtPrice(q.targetLow,q.currency)+'–'+fmtPrice(q.targetHigh,q.currency)+')</span>':'')+'</div></div>';
-    if(q.recommendationKey)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('rec')+'</div><div class="live-analyst-val" style="color:'+(recColors[q.recommendationKey]||'var(--text)')+'">'+(recNames[q.recommendationKey]||q.recommendationKey)+'</div></div>';
+    if(q.recommendationKey)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('rec')+'</div><div class="live-analyst-val" style="color:'+(recColors[q.recommendationKey]||'var(--text)')+'">'+recLabel(q.recommendationKey)+'</div></div>';
     if(q.numberOfAnalysts)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('analysts')+'</div><div class="live-analyst-val">'+q.numberOfAnalysts+'</div></div>';
     an.innerHTML=h;an.style.display='flex';
   }else{an.style.display='none';}
   // Company info
   var co=document.getElementById('lvCompany');
   if(q.sector||q.description){
-    var ch='';
-    if(q.sector)ch+='<strong>'+LT('sector')+':</strong> '+escHtml(q.sector)+(q.industry?' · '+escHtml(q.industry):'');
-    if(q.employees)ch+=' · <strong>'+LT('employees')+':</strong> '+fmtNum(q.employees);
-    if(q.description)ch+='<br>'+escHtml(q.description)+'...';
-    co.innerHTML=ch;co.style.display='block';
+    var renderCompany=function(sector,industry,desc){
+      var ch='';
+      if(sector)ch+='<strong>'+LT('sector')+':</strong> '+escHtml(sector)+(industry?' · '+escHtml(industry):'');
+      if(q.employees)ch+=' · <strong>'+LT('employees')+':</strong> '+fmtNum(q.employees);
+      if(desc)ch+='<br>'+escHtml(desc)+'...';
+      co.innerHTML=ch;co.style.display='block';
+    };
+    renderCompany(q.sector,q.industry,q.description);
+    // תרגום לשפת הממשק (אסינכרוני — מתעדכן כשהתרגום חוזר)
+    if(curLang!=='en'){
+      var toTr=[q.sector||'',q.industry||'',q.description||''];
+      trTexts(toTr).then(function(tr){renderCompany(tr[0]||q.sector,tr[1]||q.industry,tr[2]||q.description);});
+    }
   }else{co.style.display='none';}
   // AI CTA
   var cfg=loadAIConfig();

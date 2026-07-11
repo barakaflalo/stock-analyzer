@@ -388,6 +388,21 @@ body.ltr .watch-panel{right:auto;left:0;border-left:none;border-right:1px solid 
 /* ══ GLOBAL DATA DISCLAIMER ══ */
 .data-disclaimer{background:rgba(201,168,76,.04);border:1px solid var(--border);border-radius:3px;padding:8px 14px;margin-bottom:16px;font-size:9px;color:var(--text-muted);line-height:1.6;text-align:center;}
 .data-disclaimer .dd-link{color:var(--gold-dim);cursor:pointer;text-decoration:underline;}
+
+/* ══ NEWS SECTION ══ */
+.live-news{border-top:1px solid var(--border);}
+.live-news-title{padding:12px 20px 4px;font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.news-item{display:block;padding:10px 20px;border-bottom:1px solid rgba(128,128,128,.06);text-decoration:none;transition:background .15s;}
+.news-item:hover{background:rgba(201,168,76,.03);}
+.news-item:last-child{border-bottom:none;}
+.news-title{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:3px;}
+.news-meta{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+/* Test connection button */
+.btn-test-ai{width:100%;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:10px;font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;margin-top:8px;}
+.btn-test-ai:hover{border-color:var(--gold-dim);color:var(--gold);}
+.btn-test-ai.testing{opacity:.5;cursor:wait;}
+.btn-test-ai.ok{border-color:var(--green);color:var(--green);}
+.btn-test-ai.fail{border-color:var(--red);color:var(--red);}
 </style>
 </head>
 <body class="ltr" id="appBody">
@@ -527,6 +542,7 @@ function renderText(){
     <div class="live-metrics" id="lvMetrics"></div>
     <div class="live-analyst" id="lvAnalyst" style="display:none"></div>
     <div class="live-company" id="lvCompany" style="display:none"></div>
+    <div class="live-news" id="lvNews" style="display:none"></div>
     <div class="live-ai-cta" id="lvAiCta">
       <div class="live-ai-cta-text" id="lvAiCtaText"></div>
       <button class="btn-ai-analyze" id="btnAiFromLive" onclick="analyzeStock(currentLiveSymbol)"></button>
@@ -871,7 +887,62 @@ function renderSetup(){
     +'<div class="key-hint" style="margin-top:6px;">'+ca.hint+'</div>'
     +'</div>';
   html+='<button class="btn-setup-save" onclick="saveAISetup()">'+s.saveBtn+'</button>';
+  html+='<button class="btn-test-ai" id="btnTestAI" onclick="testAIConnection()">'+(TEST_T[curLang]||TEST_T.en).test+'</button>';
   document.getElementById('setupModalBody').innerHTML=html;
+}
+
+/* ── TEST AI CONNECTION ── */
+var TEST_T={
+  he:{test:'🔌 בדוק חיבור',testing:'בודק...',ok:'✓ החיבור תקין! ה-AI עונה',fail:'✗ החיבור נכשל: ',noSel:'בחר ספק AI קודם'},
+  en:{test:'🔌 Test Connection',testing:'Testing...',ok:'✓ Connected! AI responds',fail:'✗ Connection failed: ',noSel:'Select an AI provider first'},
+  ru:{test:'🔌 Проверить соединение',testing:'Проверка...',ok:'✓ Подключено! ИИ отвечает',fail:'✗ Ошибка: ',noSel:'Сначала выберите провайдера'},
+  es:{test:'🔌 Probar conexión',testing:'Probando...',ok:'✓ ¡Conectado! La IA responde',fail:'✗ Falló: ',noSel:'Selecciona un proveedor primero'},
+  ar:{test:'🔌 اختبار الاتصال',testing:'جارٍ الاختبار...',ok:'✓ متصل! الذكاء الاصطناعي يستجيب',fail:'✗ فشل: ',noSel:'اختر مزوداً أولاً'}
+};
+async function testAIConnection(){
+  var t=TEST_T[curLang]||TEST_T.en;
+  var btn=document.getElementById('btnTestAI');
+  if(!selectedAI){btn.textContent=t.noSel;btn.className='btn-test-ai fail';setTimeout(function(){btn.textContent=t.test;btn.className='btn-test-ai';},2500);return;}
+  // Temporarily save current form values so the test uses them
+  btn.textContent=t.testing;btn.className='btn-test-ai testing';btn.disabled=true;
+  try{
+    var key='',testPrompt='Reply with exactly: OK';
+    if(selectedAI==='claude'){
+      key=document.getElementById('key-claude').value.trim();
+      if(!key)throw new Error('No key');
+      var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
+      if(!r.ok){var e1=await r.json().catch(function(){return{};});throw new Error((e1.error&&e1.error.message)||'HTTP '+r.status);}
+    }else if(selectedAI==='openai'){
+      key=document.getElementById('key-openai').value.trim();
+      if(!key)throw new Error('No key');
+      var r2=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
+      if(!r2.ok){var e2=await r2.json().catch(function(){return{};});throw new Error((e2.error&&e2.error.message)||'HTTP '+r2.status);}
+    }else if(selectedAI==='gemini'){
+      key=document.getElementById('key-gemini').value.trim();
+      if(!key)throw new Error('No key');
+      var r3=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:testPrompt}]}]})});
+      if(!r3.ok){var e3=await r3.json().catch(function(){return{};});throw new Error((e3.error&&e3.error.message)||'HTTP '+r3.status);}
+    }else if(selectedAI==='device'){
+      var u=document.getElementById('key-device').value.trim()||'http://localhost:11434/v1';
+      var r4=await fetch(u.replace(/\/+$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama3',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
+      if(!r4.ok)throw new Error('HTTP '+r4.status);
+    }else if(selectedAI==='custom'){
+      var cu=document.getElementById('key-custom-url').value.trim();
+      var ck=document.getElementById('key-custom').value.trim();
+      if(!cu)throw new Error('No URL');
+      var h={'Content-Type':'application/json'};if(ck)h['Authorization']='Bearer '+ck;
+      var r5=await fetch(cu,{method:'POST',headers:h,body:JSON.stringify({model:'gpt-4o-mini',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
+      if(!r5.ok)throw new Error('HTTP '+r5.status);
+    }
+    btn.textContent=t.ok;btn.className='btn-test-ai ok';
+  }catch(err){
+    var msg=String(err.message||err);
+    if(msg.length>40)msg=msg.slice(0,40)+'...';
+    btn.textContent=t.fail+msg;btn.className='btn-test-ai fail';
+  }finally{
+    btn.disabled=false;
+    setTimeout(function(){btn.textContent=t.test;btn.className='btn-test-ai';},5000);
+  }
 }
 var selectedAI=null;
 function loadAIConfig(){
@@ -1656,6 +1727,8 @@ function refreshAnalysis(){var sym=document.getElementById('rSym').textContent;i
    CORE AI FETCH
 ══════════════════════════════════════════════════ */
 var analysisHistory=[];
+try{analysisHistory=JSON.parse(localStorage.getItem('stockai_history'))||[];}catch(e){analysisHistory=[];}
+function persistHistory(){try{localStorage.setItem('stockai_history',JSON.stringify(analysisHistory.slice(0,5)));}catch(e){}}
 var currentSymbol='';
 function quickAnalyze(sym){document.getElementById('stockInput').value=sym;loadLiveData(sym);}
 
@@ -1860,6 +1933,7 @@ function getConfLabel(s){if(s>=75)return T('confHigh');if(s>=50)return T('confMe
 function addToHistory(sym,result){
   analysisHistory.unshift({symbol:sym,result:result,time:new Date().toLocaleTimeString()});
   if(analysisHistory.length>5)analysisHistory.pop();
+  persistHistory();
   renderHistory();
 }
 function renderHistory(){
@@ -1911,17 +1985,17 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
    LIVE MARKET DATA — טיקר, כרטיס נתונים, גרף, מט"ח
 ══════════════════════════════════════════════════ */
 var LIVE_T={
-  he:{updated:'עודכן',open:'פתיחה',high:'גבוה יומי',low:'נמוך יומי',volume:'מחזור',avgVol:'מחזור ממוצע',mcap:'שווי שוק',pe:'מכפיל רווח',eps:'רווח למניה',beta:'בטא',div:'תשואת דיבידנד',w52:'טווח 52 שבועות',target:'יעד אנליסטים',analysts:'אנליסטים',rec:'קונצנזוס',earnings:'דוח קרוב',sector:'סקטור',employees:'עובדים',aiCta:'רוצה ניתוח AI חכם של המניה?',aiCtaNoKey:'חבר AI בחינם (2 דק\') וקבל ניתוח קנה/מכור מלא',btnAnalyze:'▶ ניתוח AI',btnConnect:'⚙ חבר AI',forex:'💱 מט"ח',crypto:'₿ קריפטו',preMarket:'טרום מסחר',postMarket:'אחרי מסחר',marketOpen:'● שוק פתוח',marketClosed:'○ שוק סגור',dataErr:'שגיאה בטעינת נתונים — נסה שוב',disclaimer:'⚠ הנתונים נשאבים ממקורות חיצוניים ברשת (Yahoo Finance ואחרים) ומוצגים לנוחות בלבד. ייתכנו עיכובים, טעויות או אי-דיוקים. יש לאמת כל נתון מול מקור מוסמך לפני קבלת החלטה. האפליקציה והמפתחים אינם אחראים לכל נזק או הפסד.',rangeD:'יום',rangeW:'שבוע',rangeM:'חודש',range6M:'חצי שנה',rangeY:'שנה',range5Y:'5 שנים'},
-  en:{updated:'Updated',open:'Open',high:'Day High',low:'Day Low',volume:'Volume',avgVol:'Avg Volume',mcap:'Market Cap',pe:'P/E Ratio',eps:'EPS',beta:'Beta',div:'Dividend Yield',w52:'52W Range',target:'Analyst Target',analysts:'Analysts',rec:'Consensus',earnings:'Next Earnings',sector:'Sector',employees:'Employees',aiCta:'Want a smart AI analysis of this stock?',aiCtaNoKey:'Connect AI for free (2 min) and get full BUY/SELL analysis',btnAnalyze:'▶ AI Analysis',btnConnect:'⚙ Connect AI',forex:'💱 Forex',crypto:'₿ Crypto',preMarket:'Pre-Market',postMarket:'After Hours',marketOpen:'● Market Open',marketClosed:'○ Market Closed',dataErr:'Error loading data — try again',disclaimer:'⚠ Data is sourced from external web sources (Yahoo Finance and others) and shown for convenience only. Delays, errors or inaccuracies may occur. Verify all data with an authorized source before making decisions. The app and developers bear no responsibility for any damage or loss.',rangeD:'1D',rangeW:'1W',rangeM:'1M',range6M:'6M',rangeY:'1Y',range5Y:'5Y'},
-  ru:{updated:'Обновлено',open:'Открытие',high:'Макс. дня',low:'Мин. дня',volume:'Объём',avgVol:'Ср. объём',mcap:'Капитализация',pe:'P/E',eps:'EPS',beta:'Бета',div:'Дивиденд',w52:'Диапазон 52 нед.',target:'Цель аналитиков',analysts:'Аналитики',rec:'Консенсус',earnings:'Ближ. отчёт',sector:'Сектор',employees:'Сотрудники',aiCta:'Хотите умный ИИ-анализ этой акции?',aiCtaNoKey:'Подключите ИИ бесплатно (2 мин) и получите полный анализ',btnAnalyze:'▶ ИИ Анализ',btnConnect:'⚙ Подключить ИИ',forex:'💱 Валюты',crypto:'₿ Крипто',preMarket:'Премаркет',postMarket:'Постмаркет',marketOpen:'● Рынок открыт',marketClosed:'○ Рынок закрыт',dataErr:'Ошибка загрузки — попробуйте снова',disclaimer:'⚠ Данные получены из внешних источников (Yahoo Finance и др.) и показаны для удобства. Возможны задержки и неточности. Проверяйте данные в официальных источниках. Приложение и разработчики не несут ответственности.',rangeD:'1Д',rangeW:'1Н',rangeM:'1М',range6M:'6М',rangeY:'1Г',range5Y:'5Л'},
-  es:{updated:'Actualizado',open:'Apertura',high:'Máx. día',low:'Mín. día',volume:'Volumen',avgVol:'Vol. promedio',mcap:'Cap. mercado',pe:'P/E',eps:'EPS',beta:'Beta',div:'Dividendo',w52:'Rango 52 sem.',target:'Objetivo analistas',analysts:'Analistas',rec:'Consenso',earnings:'Próx. reporte',sector:'Sector',employees:'Empleados',aiCta:'¿Quieres un análisis IA inteligente?',aiCtaNoKey:'Conecta IA gratis (2 min) y obtén análisis completo',btnAnalyze:'▶ Análisis IA',btnConnect:'⚙ Conectar IA',forex:'💱 Divisas',crypto:'₿ Cripto',preMarket:'Pre-mercado',postMarket:'Post-mercado',marketOpen:'● Mercado abierto',marketClosed:'○ Mercado cerrado',dataErr:'Error al cargar — intenta de nuevo',disclaimer:'⚠ Los datos provienen de fuentes externas (Yahoo Finance y otros) y se muestran solo por conveniencia. Pueden ocurrir retrasos o errores. Verifica con fuentes autorizadas antes de decidir. La app y los desarrolladores no asumen responsabilidad.',rangeD:'1D',rangeW:'1S',rangeM:'1M',range6M:'6M',rangeY:'1A',range5Y:'5A'},
-  ar:{updated:'تحديث',open:'الافتتاح',high:'أعلى اليوم',low:'أدنى اليوم',volume:'الحجم',avgVol:'متوسط الحجم',mcap:'القيمة السوقية',pe:'مكرر الربحية',eps:'ربح السهم',beta:'بيتا',div:'عائد التوزيع',w52:'نطاق 52 أسبوع',target:'هدف المحللين',analysts:'محللون',rec:'الإجماع',earnings:'التقرير القادم',sector:'القطاع',employees:'موظفون',aiCta:'تريد تحليل ذكاء اصطناعي ذكي؟',aiCtaNoKey:'اربط الذكاء الاصطناعي مجاناً (دقيقتان) واحصل على تحليل كامل',btnAnalyze:'▶ تحليل AI',btnConnect:'⚙ ربط AI',forex:'💱 عملات',crypto:'₿ كريبتو',preMarket:'قبل السوق',postMarket:'بعد السوق',marketOpen:'● السوق مفتوح',marketClosed:'○ السوق مغلق',dataErr:'خطأ في التحميل — حاول مجدداً',disclaimer:'⚠ البيانات مأخوذة من مصادر خارجية (Yahoo Finance وغيرها) وتُعرض للراحة فقط. قد تحدث تأخيرات أو أخطاء. تحقق من مصدر معتمد قبل اتخاذ القرار. التطبيق والمطورون غير مسؤولين عن أي ضرر.',rangeD:'يوم',rangeW:'أسبوع',rangeM:'شهر',range6M:'6ش',rangeY:'سنة',range5Y:'5س'}
+  he:{updated:'עודכן',open:'פתיחה',high:'גבוה יומי',low:'נמוך יומי',volume:'מחזור',avgVol:'מחזור ממוצע',mcap:'שווי שוק',pe:'מכפיל רווח',eps:'רווח למניה',beta:'בטא',div:'תשואת דיבידנד',w52:'טווח 52 שבועות',target:'יעד אנליסטים',analysts:'אנליסטים',rec:'קונצנזוס',earnings:'דוח קרוב',sector:'סקטור',employees:'עובדים',aiCta:'רוצה ניתוח AI חכם של המניה?',aiCtaNoKey:'חבר AI בחינם (2 דק\') וקבל ניתוח קנה/מכור מלא',btnAnalyze:'▶ ניתוח AI',btnConnect:'⚙ חבר AI',forex:'💱 מט"ח',crypto:'₿ קריפטו',preMarket:'טרום מסחר',postMarket:'אחרי מסחר',marketOpen:'● שוק פתוח',marketClosed:'○ שוק סגור',dataErr:'שגיאה בטעינת נתונים — נסה שוב',disclaimer:'⚠ הנתונים נשאבים ממקורות חיצוניים ברשת (Yahoo Finance ואחרים) ומוצגים לנוחות בלבד. ייתכנו עיכובים, טעויות או אי-דיוקים. יש לאמת כל נתון מול מקור מוסמך לפני קבלת החלטה. האפליקציה והמפתחים אינם אחראים לכל נזק או הפסד.',newsTitle:'📰 חדשות אחרונות',rangeD:'יום',rangeW:'שבוע',rangeM:'חודש',range6M:'חצי שנה',rangeY:'שנה',range5Y:'5 שנים'},
+  en:{updated:'Updated',open:'Open',high:'Day High',low:'Day Low',volume:'Volume',avgVol:'Avg Volume',mcap:'Market Cap',pe:'P/E Ratio',eps:'EPS',beta:'Beta',div:'Dividend Yield',w52:'52W Range',target:'Analyst Target',analysts:'Analysts',rec:'Consensus',earnings:'Next Earnings',sector:'Sector',employees:'Employees',aiCta:'Want a smart AI analysis of this stock?',aiCtaNoKey:'Connect AI for free (2 min) and get full BUY/SELL analysis',btnAnalyze:'▶ AI Analysis',btnConnect:'⚙ Connect AI',forex:'💱 Forex',crypto:'₿ Crypto',preMarket:'Pre-Market',postMarket:'After Hours',marketOpen:'● Market Open',marketClosed:'○ Market Closed',dataErr:'Error loading data — try again',disclaimer:'⚠ Data is sourced from external web sources (Yahoo Finance and others) and shown for convenience only. Delays, errors or inaccuracies may occur. Verify all data with an authorized source before making decisions. The app and developers bear no responsibility for any damage or loss.',newsTitle:'📰 Latest News',rangeD:'1D',rangeW:'1W',rangeM:'1M',range6M:'6M',rangeY:'1Y',range5Y:'5Y'},
+  ru:{updated:'Обновлено',open:'Открытие',high:'Макс. дня',low:'Мин. дня',volume:'Объём',avgVol:'Ср. объём',mcap:'Капитализация',pe:'P/E',eps:'EPS',beta:'Бета',div:'Дивиденд',w52:'Диапазон 52 нед.',target:'Цель аналитиков',analysts:'Аналитики',rec:'Консенсус',earnings:'Ближ. отчёт',sector:'Сектор',employees:'Сотрудники',aiCta:'Хотите умный ИИ-анализ этой акции?',aiCtaNoKey:'Подключите ИИ бесплатно (2 мин) и получите полный анализ',btnAnalyze:'▶ ИИ Анализ',btnConnect:'⚙ Подключить ИИ',forex:'💱 Валюты',crypto:'₿ Крипто',preMarket:'Премаркет',postMarket:'Постмаркет',marketOpen:'● Рынок открыт',marketClosed:'○ Рынок закрыт',dataErr:'Ошибка загрузки — попробуйте снова',disclaimer:'⚠ Данные получены из внешних источников (Yahoo Finance и др.) и показаны для удобства. Возможны задержки и неточности. Проверяйте данные в официальных источниках. Приложение и разработчики не несут ответственности.',newsTitle:'📰 Последние новости',rangeD:'1Д',rangeW:'1Н',rangeM:'1М',range6M:'6М',rangeY:'1Г',range5Y:'5Л'},
+  es:{updated:'Actualizado',open:'Apertura',high:'Máx. día',low:'Mín. día',volume:'Volumen',avgVol:'Vol. promedio',mcap:'Cap. mercado',pe:'P/E',eps:'EPS',beta:'Beta',div:'Dividendo',w52:'Rango 52 sem.',target:'Objetivo analistas',analysts:'Analistas',rec:'Consenso',earnings:'Próx. reporte',sector:'Sector',employees:'Empleados',aiCta:'¿Quieres un análisis IA inteligente?',aiCtaNoKey:'Conecta IA gratis (2 min) y obtén análisis completo',btnAnalyze:'▶ Análisis IA',btnConnect:'⚙ Conectar IA',forex:'💱 Divisas',crypto:'₿ Cripto',preMarket:'Pre-mercado',postMarket:'Post-mercado',marketOpen:'● Mercado abierto',marketClosed:'○ Mercado cerrado',dataErr:'Error al cargar — intenta de nuevo',disclaimer:'⚠ Los datos provienen de fuentes externas (Yahoo Finance y otros) y se muestran solo por conveniencia. Pueden ocurrir retrasos o errores. Verifica con fuentes autorizadas antes de decidir. La app y los desarrolladores no asumen responsabilidad.',newsTitle:'📰 Últimas noticias',rangeD:'1D',rangeW:'1S',rangeM:'1M',range6M:'6M',rangeY:'1A',range5Y:'5A'},
+  ar:{updated:'تحديث',open:'الافتتاح',high:'أعلى اليوم',low:'أدنى اليوم',volume:'الحجم',avgVol:'متوسط الحجم',mcap:'القيمة السوقية',pe:'مكرر الربحية',eps:'ربح السهم',beta:'بيتا',div:'عائد التوزيع',w52:'نطاق 52 أسبوع',target:'هدف المحللين',analysts:'محللون',rec:'الإجماع',earnings:'التقرير القادم',sector:'القطاع',employees:'موظفون',aiCta:'تريد تحليل ذكاء اصطناعي ذكي؟',aiCtaNoKey:'اربط الذكاء الاصطناعي مجاناً (دقيقتان) واحصل على تحليل كامل',btnAnalyze:'▶ تحليل AI',btnConnect:'⚙ ربط AI',forex:'💱 عملات',crypto:'₿ كريبتو',preMarket:'قبل السوق',postMarket:'بعد السوق',marketOpen:'● السوق مفتوح',marketClosed:'○ السوق مغلق',dataErr:'خطأ في التحميل — حاول مجدداً',disclaimer:'⚠ البيانات مأخوذة من مصادر خارجية (Yahoo Finance وغيرها) وتُعرض للراحة فقط. قد تحدث تأخيرات أو أخطاء. تحقق من مصدر معتمد قبل اتخاذ القرار. التطبيق والمطورون غير مسؤولين عن أي ضرر.',newsTitle:'📰 آخر الأخبار',rangeD:'يوم',rangeW:'أسبوع',rangeM:'شهر',range6M:'6ش',rangeY:'سنة',range5Y:'5س'}
 };
 function LT(k){var l=LIVE_T[curLang]||LIVE_T.en;return l[k]||LIVE_T.en[k]||k;}
 
 var currentLiveSymbol='';
 var currentChartRange='1mo';
-var TICKER_SYMBOLS=['AAPL','MSFT','NVDA','TSLA','GOOGL','AMZN','META','TEVA','CHKP','NICE','MNDY','WIX'];
+var TICKER_SYMBOLS=['AAPL','MSFT','NVDA','TSLA','GOOGL','AMZN','META','NFLX','AMD','INTC','TEVA','CHKP','NICE','MNDY','WIX','CYBR','ESLT','GLBE'];
 
 /* ── Number formatting ── */
 function fmtNum(n){
@@ -1943,21 +2017,39 @@ function fmtPct(n){
   return (v>=0?'+':'')+v+'%';
 }
 
-/* ── LIVE TICKER ── */
+/* ── LIVE TICKER — מניות + מדדים, אנימציה שלא נשברת ── */
 async function loadLiveTicker(){
   try{
-    var data=await fetchLiveTicker(TICKER_SYMBOLS);
-    if(!data.quotes||!data.quotes.length)return;
-    var html='';
-    // duplicate for seamless loop
-    for(var loop=0;loop<2;loop++){
-      data.quotes.forEach(function(q){
-        var color=q.changePct>=0?'var(--green)':'var(--red)';
-        html+='<span class="ticker-item" style="cursor:pointer" onclick="quickLive(\''+q.symbol+'\')">'+q.symbol+' '+fmtPrice(q.price)+' <span style="color:'+color+'">'+fmtPct(q.changePct)+'</span></span>';
+    var results=await Promise.all([
+      fetchLiveTicker(TICKER_SYMBOLS).catch(function(){return null;}),
+      workerFetch('action=indices').catch(function(){return null;})
+    ]);
+    var tickerData=results[0],indicesData=results[1];
+    var items=[];
+    // Indices first (gold color, no click)
+    if(indicesData&&indicesData.indices){
+      indicesData.indices.forEach(function(ix){
+        var color=ix.changePct>=0?'var(--green)':'var(--red)';
+        items.push('<span class="ticker-item"><span style="color:var(--gold)">'+ix.name+'</span> '+fmtNum(ix.price)+' <span style="color:'+color+'">'+fmtPct(ix.changePct)+'</span></span>');
       });
     }
-    document.getElementById('tickerTrack').innerHTML=html;
-  }catch(e){/* keep loading msg quietly */}
+    // Stocks (clickable)
+    if(tickerData&&tickerData.quotes){
+      tickerData.quotes.forEach(function(q){
+        var color=q.changePct>=0?'var(--green)':'var(--red)';
+        items.push('<span class="ticker-item" style="cursor:pointer" onclick="quickLive(\''+q.symbol+'\')">'+q.symbol+' '+fmtPrice(q.price)+' <span style="color:'+color+'">'+fmtPct(q.changePct)+'</span></span>');
+      });
+    }
+    if(!items.length)return;
+    // Duplicate content for seamless 50% loop, then RESTART the animation
+    var track=document.getElementById('tickerTrack');
+    track.style.animation='none';
+    track.innerHTML=items.join('')+items.join('');
+    // Force reflow then re-apply animation — this is what keeps it running forever
+    void track.offsetWidth;
+    var duration=Math.max(30,items.length*4);
+    track.style.animation='ticker '+duration+'s linear infinite';
+  }catch(e){/* keep whatever is showing */}
 }
 
 /* ── LIVE QUOTE CARD ── */
@@ -1976,14 +2068,37 @@ async function loadLiveData(symbol){
   document.getElementById('lvMetrics').innerHTML='';
   document.getElementById('lvAnalyst').style.display='none';
   document.getElementById('lvCompany').style.display='none';
+  document.getElementById('lvNews').style.display='none';
   try{
     var q=await fetchLiveQuote(symbol);
     renderLiveQuote(q);
     loadLiveChart(symbol,currentChartRange);
+    loadStockNews(symbol);
   }catch(e){
     document.getElementById('lvName').textContent=LT('dataErr');
     document.getElementById('lvPrice').textContent='—';
   }
+}
+
+/* ── NEWS ── */
+async function loadStockNews(symbol){
+  try{
+    var data=await workerFetch('action=news&symbol='+encodeURIComponent(symbol));
+    if(!data.news||!data.news.length)return;
+    var el=document.getElementById('lvNews');
+    var h='<div class="live-news-title">'+LT('newsTitle')+'</div>';
+    data.news.slice(0,5).forEach(function(n){
+      var timeStr='';
+      if(n.time){
+        var mins=Math.floor((Date.now()-new Date(n.time).getTime())/60000);
+        timeStr=mins<60?mins+'m':mins<1440?Math.floor(mins/60)+'h':Math.floor(mins/1440)+'d';
+      }
+      h+='<a class="news-item" href="'+escHtml(n.link)+'" target="_blank" rel="noopener">'
+        +'<div class="news-title">'+escHtml(n.title)+'</div>'
+        +'<div class="news-meta">'+escHtml(n.publisher||'')+(timeStr?' · '+timeStr:'')+'</div></a>';
+    });
+    el.innerHTML=h;el.style.display='block';
+  }catch(e){/* news is optional */}
 }
 
 function renderLiveQuote(q){
@@ -2182,6 +2297,7 @@ window.onload=function(){
   renderText();
   renderDataDisclaimer();
   renderChartRanges();
+  renderHistory();
   // Live market data — loads immediately, no AI needed
   loadLiveTicker();
   loadFxData();

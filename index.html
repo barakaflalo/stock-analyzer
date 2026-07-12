@@ -1775,20 +1775,40 @@ async function analyzeStock(forceSym){
   var symbol=forceSym||(document.getElementById('stockInput').value.trim().toUpperCase());
   if(!symbol)return;
   var cfg=loadAIConfig();
-  // Always load live data (free, no AI needed)
-  if(currentLiveSymbol!==symbol)loadLiveData(symbol);
-  if(!cfg.provider){showError(T('errNoAI'));openSetup();return;}
+  if(!cfg.provider){
+    if(currentLiveSymbol!==symbol)loadLiveData(symbol);
+    showError(T('errNoAI'));openSetup();return;
+  }
   currentSymbol=symbol;
   setLoading(true,symbol);hideStaleBar();
   try{
+    // קריטי: ממתינים לנתונים החיים לפני ה-AI — כדי שהמחיר האמיתי יוזרק לניתוח!
+    if(!window.__lastLiveQuote||window.__lastLiveQuote.symbol!==symbol){
+      try{await loadLiveData(symbol);}catch(e){/* נתונים חיים אופציונליים */}
+    }
     var result=await fetchAnalysis(symbol);
     cacheAnalysis(symbol,result);
     renderResult(result,symbol);
     addToHistory(symbol,result);
     if(isStale(symbol)){var e=getAnalysisCache()[symbol];if(e)showStaleBar(symbol,e.ts);}
-  }catch(err){showError(T('errGeneral')+': '+err.message);}
+  }catch(err){
+    var em=String(err.message||'');
+    if(/quota|429|exhaust|rate.?limit|overload|503/i.test(em)){
+      showError(QUOTA_T[curLang]||QUOTA_T.en);
+    }else{
+      showError(T('errGeneral')+': '+em);
+    }
+  }
   finally{setLoading(false,symbol);}
 }
+
+var QUOTA_T={
+  he:'⏳ כל המפתחות מיצו את המכסה הרגעית (או שהשרתים עמוסים). המתן דקה ונסה שוב — זה יעבוד!',
+  en:'⏳ All keys hit their per-minute quota (or servers are busy). Wait a minute and try again — it will work!',
+  ru:'⏳ Все ключи исчерпали минутную квоту (или серверы перегружены). Подождите минуту и попробуйте снова!',
+  es:'⏳ Todas las claves alcanzaron su cuota por minuto (o los servidores están ocupados). ¡Espera un minuto e intenta de nuevo!',
+  ar:'⏳ استنفدت جميع المفاتيح حصتها الدقيقية (أو الخوادم مشغولة). انتظر دقيقة وحاول مجدداً!'
+};
 
 /* AI response language — ה-AI עונה בשפת הממשק */
 var AI_LANG_NAMES={he:'Hebrew',en:'English',ru:'Russian',es:'Spanish',ar:'Arabic'};
@@ -1933,8 +1953,8 @@ async function geminiCall(apiKey,promptText,maxTokens){
     }
     var e=await res.json().catch(function(){return{};});
     lastErr=new Error((e.error&&e.error.message)||'HTTP '+res.status);
-    // 404 = מודל לא קיים · 429 = מכסה נגמרה למודל הזה (לכל מודל מכסה נפרדת!) — נסה את הבא
-    if(res.status!==404&&res.status!==429)throw lastErr;
+    // 404=מודל לא קיים · 429=מכסה · 500/503=עומס בשרתי גוגל — כולם: נסה את המודל הבא
+    if(res.status!==404&&res.status!==429&&res.status!==500&&res.status!==503)throw lastErr;
     if(res.status===429){__geminiWorking=null;localStorage.removeItem('stockai_gemini_model');}
   }
   throw lastErr||new Error('No Gemini model available');

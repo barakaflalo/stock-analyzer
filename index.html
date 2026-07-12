@@ -881,9 +881,16 @@ function renderSetup(){
   // Key areas
   ['claude','openai','gemini'].forEach(function(id){
     var a=s.areas[id];
+    var inputHtml;
+    if(id==='gemini'){
+      inputHtml='<textarea class="key-input" id="key-gemini" placeholder="'+a.ph+'" rows="3" style="resize:vertical;min-height:60px;font-size:11px;line-height:1.6;">'+escHtml(savedVals[id])+'</textarea>'
+        +'<div class="key-hint" style="margin-top:4px;color:var(--gold-dim);">'+(MULTIKEY_T[curLang]||MULTIKEY_T.en)+'</div>';
+    }else{
+      inputHtml='<input type="password" class="key-input" id="key-'+id+'" placeholder="'+a.ph+'" value="'+escHtml(savedVals[id])+'">';
+    }
     html+='<div class="key-area'+(selectedAI===id?' visible':'')+'" id="area-'+id+'">'
       +'<div class="key-label">'+a.label+'</div>'
-      +'<input type="password" class="key-input" id="key-'+id+'" placeholder="'+a.ph+'" value="'+escHtml(savedVals[id])+'">'
+      +inputHtml
       +'<div class="key-hint"><div class="key-hint-steps">';
     a.steps.forEach(function(step,n){html+='<div class="key-step"><span class="key-step-num">'+(n+1)+'</span><span>'+step+'</span></div>';});
     html+='</div>';
@@ -917,6 +924,13 @@ function renderSetup(){
 }
 
 /* ── TEST AI CONNECTION ── */
+var MULTIKEY_T={
+  he:'💡 ניתן להזין כמה מפתחות — אחד בכל שורה. כשנגמרת מכסה של מפתח, האפליקציה עוברת אוטומטית לבא!',
+  en:'💡 You can enter multiple keys — one per line. When a key hits its quota, the app rotates to the next automatically!',
+  ru:'💡 Можно ввести несколько ключей — по одному в строке. Когда квота исчерпана, приложение автоматически переключается!',
+  es:'💡 Puedes ingresar varias claves — una por línea. ¡Cuando se agota la cuota, la app rota automáticamente!',
+  ar:'💡 يمكنك إدخال عدة مفاتيح — واحد في كل سطر. عند نفاد الحصة، ينتقل التطبيق تلقائياً للتالي!'
+};
 var TEST_T={
   he:{test:'🔌 בדוק חיבור',testing:'בודק...',ok:'✓ החיבור תקין! ה-AI עונה',fail:'✗ החיבור נכשל: ',noSel:'בחר ספק AI קודם'},
   en:{test:'🔌 Test Connection',testing:'Testing...',ok:'✓ Connected! AI responds',fail:'✗ Connection failed: ',noSel:'Select an AI provider first'},
@@ -943,9 +957,10 @@ async function testAIConnection(){
       var r2=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
       if(!r2.ok){var e2=await r2.json().catch(function(){return{};});throw new Error((e2.error&&e2.error.message)||'HTTP '+r2.status);}
     }else if(selectedAI==='gemini'){
-      key=document.getElementById('key-gemini').value.trim();
-      if(!key)throw new Error('No key');
-      await geminiCall(key,testPrompt,10);
+      var rawKeys=document.getElementById('key-gemini').value.trim();
+      if(!rawKeys)throw new Error('No key');
+      var keyList=rawKeys.split(/[\n,;]+/).map(function(s){return s.trim();}).filter(Boolean);
+      await geminiCallMulti(keyList,testPrompt,10);
     }else if(selectedAI==='device'){
       var u=document.getElementById('key-device').value.trim()||'http://localhost:11434/v1';
       var r4=await fetch(u.replace(/\/+$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama3',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
@@ -1775,10 +1790,17 @@ async function analyzeStock(forceSym){
   finally{setLoading(false,symbol);}
 }
 
+/* AI response language — ה-AI עונה בשפת הממשק */
+var AI_LANG_NAMES={he:'Hebrew',en:'English',ru:'Russian',es:'Spanish',ar:'Arabic'};
+function aiLangInstruction(){
+  if(curLang==='en')return '';
+  return 'IMPORTANT: Write all free-text values (summary, bullishFactors, bearishFactors, analystRating, sources) in '+(AI_LANG_NAMES[curLang]||'English')+'. Keep JSON keys and enum values (BUY/SELL/HOLD, POSITIVE/NEUTRAL/NEGATIVE, UP/DOWN, LOW/MEDIUM/HIGH) in English exactly as specified. ';
+}
+
 /* Build real-time data context for AI prompt injection */
 function buildLiveContext(symbol){
   var q=window.__lastLiveQuote;
-  if(!q||q.symbol!==symbol)return '';
+  if(!q||q.symbol!==symbol)return aiLangInstruction();
   var parts=['REAL-TIME MARKET DATA (from Yahoo Finance, fetched '+new Date().toLocaleString()+'):'];
   if(q.regularPrice!=null)parts.push('Current price: '+q.regularPrice+' '+(q.currency||'USD')+' ('+fmtPct(q.regularChangePct)+' today)');
   if(q.open!=null)parts.push('Open: '+q.open+', Day range: '+q.dayLow+'-'+q.dayHigh);
@@ -1791,7 +1813,7 @@ function buildLiveContext(symbol){
   if(q.beta)parts.push('Beta: '+Math.round(q.beta*100)/100);
   if(q.sector)parts.push('Sector: '+q.sector+(q.industry?' / '+q.industry:''));
   if(q.earningsDate)parts.push('Next earnings: '+q.earningsDate);
-  return parts.join('\n')+'\n\nUse this VERIFIED real-time data as the factual basis for prices and fundamentals. ';
+  return parts.join('\n')+'\n\nUse this VERIFIED real-time data as the factual basis for prices and fundamentals. '+aiLangInstruction();
 }
 
 async function fetchAnalysis(symbol){
@@ -1865,6 +1887,34 @@ async function fetchOpenAI(symbol,apiKey,endpoint,model){
   return parseAIResponse(text);
 }
 
+/* Gemini — ריבוי מפתחות: הזן כמה מפתחות, מעבר אוטומטי כשמכסה נגמרת */
+function getGeminiKeys(){
+  var raw=loadAIConfig().geminiKey||'';
+  return raw.split(/[\n,;]+/).map(function(s){return s.trim();}).filter(Boolean);
+}
+var __geminiKeyIdx=parseInt(localStorage.getItem('stockai_gemini_keyidx')||'0')||0;
+async function geminiCallMulti(keys,promptText,maxTokens){
+  if(!keys.length)throw new Error('No Gemini API key');
+  var start=__geminiKeyIdx%keys.length;
+  var lastErr=null;
+  for(var k=0;k<keys.length;k++){
+    var idx=(start+k)%keys.length;
+    try{
+      var result=await geminiCall(keys[idx],promptText,maxTokens);
+      __geminiKeyIdx=idx;
+      localStorage.setItem('stockai_gemini_keyidx',String(idx));
+      return result;
+    }catch(e){
+      lastErr=e;
+      var msg=String(e.message||'').toLowerCase();
+      // מכסה/מפתח בעייתי → נסה את המפתח הבא. שגיאה אחרת → עצור
+      var retriable=msg.indexOf('quota')>-1||msg.indexOf('429')>-1||msg.indexOf('rate')>-1||msg.indexOf('exhaust')>-1||msg.indexOf('api key')>-1||msg.indexOf('invalid')>-1||msg.indexOf('permission')>-1;
+      if(!retriable)throw e;
+    }
+  }
+  throw lastErr;
+}
+
 /* Gemini — שרשרת מודלים: מנסה מהחדש לישן עד שאחד עובד */
 var GEMINI_MODELS=['gemini-2.5-flash','gemini-2.0-flash','gemini-flash-latest','gemini-1.5-flash'];
 var __geminiWorking=localStorage.getItem('stockai_gemini_model')||null;
@@ -1891,8 +1941,10 @@ async function geminiCall(apiKey,promptText,maxTokens){
 }
 
 async function fetchGemini(symbol,apiKey){
-  if(!apiKey)throw new Error('Gemini API key not set');
-  var data=await geminiCall(apiKey,AI_SYSTEM+'\n\n'+buildLiveContext(symbol)+'Now analyze stock: '+symbol+'. Return ONLY the JSON object, absolutely no other text or formatting.',2000);
+  var keys=getGeminiKeys();
+  if(!keys.length&&apiKey)keys=[apiKey];
+  if(!keys.length)throw new Error('Gemini API key not set');
+  var data=await geminiCallMulti(keys,AI_SYSTEM+'\n\n'+buildLiveContext(symbol)+'Now analyze stock: '+symbol+'. Return ONLY the JSON object, absolutely no other text or formatting.',2000);
   var text=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text)||'';
   return parseAIResponse(text);
 }

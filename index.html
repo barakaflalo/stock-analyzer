@@ -572,6 +572,7 @@ function renderText(){
     <div class="rec-trend-wrap" id="lvEarnHist" style="display:none"></div>
     <div class="rec-trend-wrap" id="lvFinHist" style="display:none"></div>
     <div class="last-action" id="lvLastAction" style="display:none"></div>
+    <div class="rec-trend-wrap" id="lvInsiders" style="display:none"></div>
     <div class="live-company" id="lvCompany" style="display:none"></div>
     <div class="live-news" id="lvNews" style="display:none"></div>
     <div class="live-ai-cta" id="lvAiCta">
@@ -1948,9 +1949,12 @@ async function geminiCall(apiKey,promptText,maxTokens){
   var models=__geminiWorking?[__geminiWorking].concat(GEMINI_MODELS.filter(function(m){return m!==__geminiWorking;})):GEMINI_MODELS;
   var lastErr=null;
   for(var i=0;i<models.length;i++){
+    var genCfg={temperature:0.3,maxOutputTokens:Math.max(maxTokens||2000,6000)};
+    // מודלי 2.5 "חושבים" כברירת מחדל ושורפים את תקציב הטוקנים — מכבים את זה
+    if(models[i].indexOf('gemini-2.5')===0)genCfg.thinkingConfig={thinkingBudget:0};
     var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+models[i]+':generateContent?key='+apiKey,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:promptText}]}],generationConfig:{temperature:0.3,maxOutputTokens:maxTokens||2000}})
+      body:JSON.stringify({contents:[{parts:[{text:promptText}]}],generationConfig:genCfg})
     });
     if(res.ok){
       __geminiWorking=models[i];
@@ -1971,7 +1975,9 @@ async function fetchGemini(symbol,apiKey){
   if(!keys.length&&apiKey)keys=[apiKey];
   if(!keys.length)throw new Error('Gemini API key not set');
   var data=await geminiCallMulti(keys,AI_SYSTEM+'\n\n'+buildLiveContext(symbol)+'Now analyze stock: '+symbol+'. Return ONLY the JSON object, absolutely no other text or formatting.',2000);
-  var text=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text)||'';
+  var gparts=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
+  var text=gparts.filter(function(p){return p&&p.text&&!p.thought;}).map(function(p){return p.text;}).join('\n');
+  if(!text)text=gparts.map(function(p){return (p&&p.text)||'';}).join('\n');
   return parseAIResponse(text);
 }
 
@@ -1992,6 +1998,7 @@ function setLoading(on,sym){
   document.getElementById('errorBox').classList.remove('visible');
   if(on)document.getElementById('resultCard').classList.remove('visible');
   if(on)document.getElementById('loadingSym').textContent=sym||'';
+  if(on)try{document.getElementById('loadingBox').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
   var btn=document.getElementById('btnAnalyze');
   btn.disabled=on;btn.setAttribute('data-t',on?'btnAnalyzing':'btnAnalyze');
   renderText();
@@ -1999,6 +2006,7 @@ function setLoading(on,sym){
 function showError(msg){
   document.getElementById('loadingBox').classList.remove('visible');
   var el=document.getElementById('errorBox');el.textContent=msg;el.classList.add('visible');
+  try{el.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
 }
 
 function renderResult(r,symbol){
@@ -2040,6 +2048,7 @@ function renderResult(r,symbol){
   var srcEl=document.getElementById('rSources');srcEl.innerHTML='';
   (r.sources||[]).forEach(function(s){var sp=document.createElement('span');sp.className='source-tag';sp.textContent=s;srcEl.appendChild(sp);});
   document.getElementById('resultCard').classList.add('visible');
+  try{document.getElementById('resultCard').scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
   currentSymbol=r.symbol||symbol;
   updateAddWatchBtn();
   // Check if stale
@@ -2105,11 +2114,11 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
    LIVE MARKET DATA — טיקר, כרטיס נתונים, גרף, מט"ח
 ══════════════════════════════════════════════════ */
 var LIVE_T={
-  he:{updated:'עודכן',open:'פתיחה',high:'גבוה יומי',low:'נמוך יומי',volume:'מחזור',avgVol:'מחזור ממוצע',mcap:'שווי שוק',pe:'מכפיל רווח',eps:'רווח למניה',beta:'בטא',div:'תשואת דיבידנד',w52:'טווח 52 שבועות',target:'יעד אנליסטים',analysts:'אנליסטים',rec:'קונצנזוס',earnings:'דוח קרוב',sector:'סקטור',employees:'עובדים',aiCta:'רוצה ניתוח AI חכם של המניה?',aiCtaNoKey:'חבר AI בחינם (2 דק\') וקבל ניתוח קנה/מכור מלא',btnAnalyze:'▶ ניתוח AI',btnConnect:'⚙ חבר AI',forex:'💱 מט"ח',crypto:'₿ קריפטו',preMarket:'טרום מסחר',postMarket:'אחרי מסחר',marketOpen:'● שוק פתוח',marketClosed:'○ שוק סגור',dataErr:'שגיאה בטעינת נתונים — נסה שוב',disclaimer:'⚠ הנתונים נשאבים ממקורות חיצוניים ברשת (Yahoo Finance ואחרים) ומוצגים לנוחות בלבד. ייתכנו עיכובים, טעויות או אי-דיוקים. יש לאמת כל נתון מול מקור מוסמך לפני קבלת החלטה. האפליקציה והמפתחים אינם אחראים לכל נזק או הפסד.',newsTitle:'📰 חדשות אחרונות',tabOverview:'סקירה',tabAnalysts:'אנליסטים',tabFinance:'פיננסים',tabCompany:'חברה',tabNews:'חדשות',margin:'שולי רווח',roe:'תשואה על הון',revGrowth:'צמיחת הכנסות',cash:'מזומנים',debt:'חוב',fcf:'תזרים חופשי',insiders:'פנימיים %',inst:'מוסדיים %',shortF:'שורט %',ma50:'ממוצע 50 יום',ma200:'ממוצע 200 יום',recTrendT:'פילוח המלצות אנליסטים',earnHistT:'היסטוריית דוחות EPS',finHistT:'הכנסות ורווח נקי שנתי',revenueL:'הכנסות',netIncomeL:'רווח נקי',lastActionT:'פעולת אנליסט אחרונה',sBuy:'קנייה חזקה',rBuy:'קנייה',rHold:'החזקה',rSell:'מכירה',sSell:'מכירה חזקה',rangeD:'יום',rangeW:'שבוע',rangeM:'חודש',range6M:'חצי שנה',rangeY:'שנה',range5Y:'5 שנים'},
-  en:{updated:'Updated',open:'Open',high:'Day High',low:'Day Low',volume:'Volume',avgVol:'Avg Volume',mcap:'Market Cap',pe:'P/E Ratio',eps:'EPS',beta:'Beta',div:'Dividend Yield',w52:'52W Range',target:'Analyst Target',analysts:'Analysts',rec:'Consensus',earnings:'Next Earnings',sector:'Sector',employees:'Employees',aiCta:'Want a smart AI analysis of this stock?',aiCtaNoKey:'Connect AI for free (2 min) and get full BUY/SELL analysis',btnAnalyze:'▶ AI Analysis',btnConnect:'⚙ Connect AI',forex:'💱 Forex',crypto:'₿ Crypto',preMarket:'Pre-Market',postMarket:'After Hours',marketOpen:'● Market Open',marketClosed:'○ Market Closed',dataErr:'Error loading data — try again',disclaimer:'⚠ Data is sourced from external web sources (Yahoo Finance and others) and shown for convenience only. Delays, errors or inaccuracies may occur. Verify all data with an authorized source before making decisions. The app and developers bear no responsibility for any damage or loss.',newsTitle:'📰 Latest News',tabOverview:'Overview',tabAnalysts:'Analysts',tabFinance:'Financials',tabCompany:'Company',tabNews:'News',margin:'Profit Margin',roe:'ROE',revGrowth:'Revenue Growth',cash:'Total Cash',debt:'Total Debt',fcf:'Free Cash Flow',insiders:'Insiders %',inst:'Institutions %',shortF:'Short %',ma50:'50-Day MA',ma200:'200-Day MA',recTrendT:'Analyst Recommendations',earnHistT:'EPS Earnings History',finHistT:'Annual Revenue & Net Income',revenueL:'Revenue',netIncomeL:'Net Income',lastActionT:'Latest Analyst Action',sBuy:'Strong Buy',rBuy:'Buy',rHold:'Hold',rSell:'Sell',sSell:'Strong Sell',rangeD:'1D',rangeW:'1W',rangeM:'1M',range6M:'6M',rangeY:'1Y',range5Y:'5Y'},
-  ru:{updated:'Обновлено',open:'Открытие',high:'Макс. дня',low:'Мин. дня',volume:'Объём',avgVol:'Ср. объём',mcap:'Капитализация',pe:'P/E',eps:'EPS',beta:'Бета',div:'Дивиденд',w52:'Диапазон 52 нед.',target:'Цель аналитиков',analysts:'Аналитики',rec:'Консенсус',earnings:'Ближ. отчёт',sector:'Сектор',employees:'Сотрудники',aiCta:'Хотите умный ИИ-анализ этой акции?',aiCtaNoKey:'Подключите ИИ бесплатно (2 мин) и получите полный анализ',btnAnalyze:'▶ ИИ Анализ',btnConnect:'⚙ Подключить ИИ',forex:'💱 Валюты',crypto:'₿ Крипто',preMarket:'Премаркет',postMarket:'Постмаркет',marketOpen:'● Рынок открыт',marketClosed:'○ Рынок закрыт',dataErr:'Ошибка загрузки — попробуйте снова',disclaimer:'⚠ Данные получены из внешних источников (Yahoo Finance и др.) и показаны для удобства. Возможны задержки и неточности. Проверяйте данные в официальных источниках. Приложение и разработчики не несут ответственности.',newsTitle:'📰 Последние новости',tabOverview:'Обзор',tabAnalysts:'Аналитики',tabFinance:'Финансы',tabCompany:'Компания',tabNews:'Новости',margin:'Маржа прибыли',roe:'ROE',revGrowth:'Рост выручки',cash:'Денежные средства',debt:'Долг',fcf:'Свободный поток',insiders:'Инсайдеры %',inst:'Институционалы %',shortF:'Шорт %',ma50:'MA 50 дней',ma200:'MA 200 дней',recTrendT:'Рекомендации аналитиков',earnHistT:'История отчётов EPS',finHistT:'Годовая выручка и прибыль',revenueL:'Выручка',netIncomeL:'Чист. прибыль',lastActionT:'Последнее действие аналитика',sBuy:'Активно покупать',rBuy:'Покупать',rHold:'Держать',rSell:'Продавать',sSell:'Активно продавать',rangeD:'1Д',rangeW:'1Н',rangeM:'1М',range6M:'6М',rangeY:'1Г',range5Y:'5Л'},
-  es:{updated:'Actualizado',open:'Apertura',high:'Máx. día',low:'Mín. día',volume:'Volumen',avgVol:'Vol. promedio',mcap:'Cap. mercado',pe:'P/E',eps:'EPS',beta:'Beta',div:'Dividendo',w52:'Rango 52 sem.',target:'Objetivo analistas',analysts:'Analistas',rec:'Consenso',earnings:'Próx. reporte',sector:'Sector',employees:'Empleados',aiCta:'¿Quieres un análisis IA inteligente?',aiCtaNoKey:'Conecta IA gratis (2 min) y obtén análisis completo',btnAnalyze:'▶ Análisis IA',btnConnect:'⚙ Conectar IA',forex:'💱 Divisas',crypto:'₿ Cripto',preMarket:'Pre-mercado',postMarket:'Post-mercado',marketOpen:'● Mercado abierto',marketClosed:'○ Mercado cerrado',dataErr:'Error al cargar — intenta de nuevo',disclaimer:'⚠ Los datos provienen de fuentes externas (Yahoo Finance y otros) y se muestran solo por conveniencia. Pueden ocurrir retrasos o errores. Verifica con fuentes autorizadas antes de decidir. La app y los desarrolladores no asumen responsabilidad.',newsTitle:'📰 Últimas noticias',tabOverview:'Resumen',tabAnalysts:'Analistas',tabFinance:'Finanzas',tabCompany:'Empresa',tabNews:'Noticias',margin:'Margen',roe:'ROE',revGrowth:'Crecimiento ingresos',cash:'Efectivo',debt:'Deuda',fcf:'Flujo libre',insiders:'Insiders %',inst:'Institucionales %',shortF:'Corto %',ma50:'MA 50 días',ma200:'MA 200 días',recTrendT:'Recomendaciones de analistas',earnHistT:'Historial EPS',finHistT:'Ingresos y beneficio anual',revenueL:'Ingresos',netIncomeL:'Beneficio neto',lastActionT:'Última acción de analista',sBuy:'Compra fuerte',rBuy:'Comprar',rHold:'Mantener',rSell:'Vender',sSell:'Venta fuerte',rangeD:'1D',rangeW:'1S',rangeM:'1M',range6M:'6M',rangeY:'1A',range5Y:'5A'},
-  ar:{updated:'تحديث',open:'الافتتاح',high:'أعلى اليوم',low:'أدنى اليوم',volume:'الحجم',avgVol:'متوسط الحجم',mcap:'القيمة السوقية',pe:'مكرر الربحية',eps:'ربح السهم',beta:'بيتا',div:'عائد التوزيع',w52:'نطاق 52 أسبوع',target:'هدف المحللين',analysts:'محللون',rec:'الإجماع',earnings:'التقرير القادم',sector:'القطاع',employees:'موظفون',aiCta:'تريد تحليل ذكاء اصطناعي ذكي؟',aiCtaNoKey:'اربط الذكاء الاصطناعي مجاناً (دقيقتان) واحصل على تحليل كامل',btnAnalyze:'▶ تحليل AI',btnConnect:'⚙ ربط AI',forex:'💱 عملات',crypto:'₿ كريبتو',preMarket:'قبل السوق',postMarket:'بعد السوق',marketOpen:'● السوق مفتوح',marketClosed:'○ السوق مغلق',dataErr:'خطأ في التحميل — حاول مجدداً',disclaimer:'⚠ البيانات مأخوذة من مصادر خارجية (Yahoo Finance وغيرها) وتُعرض للراحة فقط. قد تحدث تأخيرات أو أخطاء. تحقق من مصدر معتمد قبل اتخاذ القرار. التطبيق والمطورون غير مسؤولين عن أي ضرر.',newsTitle:'📰 آخر الأخبار',tabOverview:'نظرة عامة',tabAnalysts:'المحللون',tabFinance:'المالية',tabCompany:'الشركة',tabNews:'الأخبار',margin:'هامش الربح',roe:'العائد على الحقوق',revGrowth:'نمو الإيرادات',cash:'النقد',debt:'الدين',fcf:'التدفق الحر',insiders:'الداخليون %',inst:'المؤسسات %',shortF:'البيع المكشوف %',ma50:'متوسط 50 يوم',ma200:'متوسط 200 يوم',recTrendT:'توصيات المحللين',earnHistT:'سجل تقارير EPS',finHistT:'الإيرادات والربح السنوي',revenueL:'الإيرادات',netIncomeL:'صافي الربح',lastActionT:'آخر إجراء محلل',sBuy:'شراء قوي',rBuy:'شراء',rHold:'احتفاظ',rSell:'بيع',sSell:'بيع قوي',rangeD:'يوم',rangeW:'أسبوع',rangeM:'شهر',range6M:'6ش',rangeY:'سنة',range5Y:'5س'}
+  he:{updated:'עודכן',open:'פתיחה',high:'גבוה יומי',low:'נמוך יומי',volume:'מחזור',avgVol:'מחזור ממוצע',mcap:'שווי שוק',pe:'מכפיל רווח',eps:'רווח למניה',beta:'בטא',div:'תשואת דיבידנד',w52:'טווח 52 שבועות',target:'יעד אנליסטים',analysts:'אנליסטים',rec:'קונצנזוס',earnings:'דוח קרוב',sector:'סקטור',employees:'עובדים',aiCta:'רוצה ניתוח AI חכם של המניה?',aiCtaNoKey:'חבר AI בחינם (2 דק\') וקבל ניתוח קנה/מכור מלא',btnAnalyze:'▶ ניתוח AI',btnConnect:'⚙ חבר AI',forex:'💱 מט"ח',crypto:'₿ קריפטו',preMarket:'טרום מסחר',postMarket:'אחרי מסחר',marketOpen:'● שוק פתוח',marketClosed:'○ שוק סגור',dataErr:'שגיאה בטעינת נתונים — נסה שוב',disclaimer:'⚠ הנתונים נשאבים ממקורות חיצוניים ברשת (Yahoo Finance ואחרים) ומוצגים לנוחות בלבד. ייתכנו עיכובים, טעויות או אי-דיוקים. יש לאמת כל נתון מול מקור מוסמך לפני קבלת החלטה. האפליקציה והמפתחים אינם אחראים לכל נזק או הפסד.',newsTitle:'📰 חדשות אחרונות',tabOverview:'סקירה',tabAnalysts:'אנליסטים',tabFinance:'פיננסים',tabCompany:'חברה',tabNews:'חדשות',insiderT:'👤 עסקאות בעלי עניין',margin:'שולי רווח',roe:'תשואה על הון',revGrowth:'צמיחת הכנסות',cash:'מזומנים',debt:'חוב',fcf:'תזרים חופשי',insiders:'פנימיים %',inst:'מוסדיים %',shortF:'שורט %',ma50:'ממוצע 50 יום',ma200:'ממוצע 200 יום',recTrendT:'פילוח המלצות אנליסטים',earnHistT:'היסטוריית דוחות EPS',finHistT:'הכנסות ורווח נקי שנתי',revenueL:'הכנסות',netIncomeL:'רווח נקי',lastActionT:'פעולת אנליסט אחרונה',sBuy:'קנייה חזקה',rBuy:'קנייה',rHold:'החזקה',rSell:'מכירה',sSell:'מכירה חזקה',rangeD:'יום',rangeW:'שבוע',rangeM:'חודש',range6M:'חצי שנה',rangeY:'שנה',range5Y:'5 שנים'},
+  en:{updated:'Updated',open:'Open',high:'Day High',low:'Day Low',volume:'Volume',avgVol:'Avg Volume',mcap:'Market Cap',pe:'P/E Ratio',eps:'EPS',beta:'Beta',div:'Dividend Yield',w52:'52W Range',target:'Analyst Target',analysts:'Analysts',rec:'Consensus',earnings:'Next Earnings',sector:'Sector',employees:'Employees',aiCta:'Want a smart AI analysis of this stock?',aiCtaNoKey:'Connect AI for free (2 min) and get full BUY/SELL analysis',btnAnalyze:'▶ AI Analysis',btnConnect:'⚙ Connect AI',forex:'💱 Forex',crypto:'₿ Crypto',preMarket:'Pre-Market',postMarket:'After Hours',marketOpen:'● Market Open',marketClosed:'○ Market Closed',dataErr:'Error loading data — try again',disclaimer:'⚠ Data is sourced from external web sources (Yahoo Finance and others) and shown for convenience only. Delays, errors or inaccuracies may occur. Verify all data with an authorized source before making decisions. The app and developers bear no responsibility for any damage or loss.',newsTitle:'📰 Latest News',tabOverview:'Overview',tabAnalysts:'Analysts',tabFinance:'Financials',tabCompany:'Company',tabNews:'News',insiderT:'👤 Insider Transactions',margin:'Profit Margin',roe:'ROE',revGrowth:'Revenue Growth',cash:'Total Cash',debt:'Total Debt',fcf:'Free Cash Flow',insiders:'Insiders %',inst:'Institutions %',shortF:'Short %',ma50:'50-Day MA',ma200:'200-Day MA',recTrendT:'Analyst Recommendations',earnHistT:'EPS Earnings History',finHistT:'Annual Revenue & Net Income',revenueL:'Revenue',netIncomeL:'Net Income',lastActionT:'Latest Analyst Action',sBuy:'Strong Buy',rBuy:'Buy',rHold:'Hold',rSell:'Sell',sSell:'Strong Sell',rangeD:'1D',rangeW:'1W',rangeM:'1M',range6M:'6M',rangeY:'1Y',range5Y:'5Y'},
+  ru:{updated:'Обновлено',open:'Открытие',high:'Макс. дня',low:'Мин. дня',volume:'Объём',avgVol:'Ср. объём',mcap:'Капитализация',pe:'P/E',eps:'EPS',beta:'Бета',div:'Дивиденд',w52:'Диапазон 52 нед.',target:'Цель аналитиков',analysts:'Аналитики',rec:'Консенсус',earnings:'Ближ. отчёт',sector:'Сектор',employees:'Сотрудники',aiCta:'Хотите умный ИИ-анализ этой акции?',aiCtaNoKey:'Подключите ИИ бесплатно (2 мин) и получите полный анализ',btnAnalyze:'▶ ИИ Анализ',btnConnect:'⚙ Подключить ИИ',forex:'💱 Валюты',crypto:'₿ Крипто',preMarket:'Премаркет',postMarket:'Постмаркет',marketOpen:'● Рынок открыт',marketClosed:'○ Рынок закрыт',dataErr:'Ошибка загрузки — попробуйте снова',disclaimer:'⚠ Данные получены из внешних источников (Yahoo Finance и др.) и показаны для удобства. Возможны задержки и неточности. Проверяйте данные в официальных источниках. Приложение и разработчики не несут ответственности.',newsTitle:'📰 Последние новости',tabOverview:'Обзор',tabAnalysts:'Аналитики',tabFinance:'Финансы',tabCompany:'Компания',tabNews:'Новости',insiderT:'👤 Сделки инсайдеров',margin:'Маржа прибыли',roe:'ROE',revGrowth:'Рост выручки',cash:'Денежные средства',debt:'Долг',fcf:'Свободный поток',insiders:'Инсайдеры %',inst:'Институционалы %',shortF:'Шорт %',ma50:'MA 50 дней',ma200:'MA 200 дней',recTrendT:'Рекомендации аналитиков',earnHistT:'История отчётов EPS',finHistT:'Годовая выручка и прибыль',revenueL:'Выручка',netIncomeL:'Чист. прибыль',lastActionT:'Последнее действие аналитика',sBuy:'Активно покупать',rBuy:'Покупать',rHold:'Держать',rSell:'Продавать',sSell:'Активно продавать',rangeD:'1Д',rangeW:'1Н',rangeM:'1М',range6M:'6М',rangeY:'1Г',range5Y:'5Л'},
+  es:{updated:'Actualizado',open:'Apertura',high:'Máx. día',low:'Mín. día',volume:'Volumen',avgVol:'Vol. promedio',mcap:'Cap. mercado',pe:'P/E',eps:'EPS',beta:'Beta',div:'Dividendo',w52:'Rango 52 sem.',target:'Objetivo analistas',analysts:'Analistas',rec:'Consenso',earnings:'Próx. reporte',sector:'Sector',employees:'Empleados',aiCta:'¿Quieres un análisis IA inteligente?',aiCtaNoKey:'Conecta IA gratis (2 min) y obtén análisis completo',btnAnalyze:'▶ Análisis IA',btnConnect:'⚙ Conectar IA',forex:'💱 Divisas',crypto:'₿ Cripto',preMarket:'Pre-mercado',postMarket:'Post-mercado',marketOpen:'● Mercado abierto',marketClosed:'○ Mercado cerrado',dataErr:'Error al cargar — intenta de nuevo',disclaimer:'⚠ Los datos provienen de fuentes externas (Yahoo Finance y otros) y se muestran solo por conveniencia. Pueden ocurrir retrasos o errores. Verifica con fuentes autorizadas antes de decidir. La app y los desarrolladores no asumen responsabilidad.',newsTitle:'📰 Últimas noticias',tabOverview:'Resumen',tabAnalysts:'Analistas',tabFinance:'Finanzas',tabCompany:'Empresa',tabNews:'Noticias',insiderT:'👤 Transacciones de insiders',margin:'Margen',roe:'ROE',revGrowth:'Crecimiento ingresos',cash:'Efectivo',debt:'Deuda',fcf:'Flujo libre',insiders:'Insiders %',inst:'Institucionales %',shortF:'Corto %',ma50:'MA 50 días',ma200:'MA 200 días',recTrendT:'Recomendaciones de analistas',earnHistT:'Historial EPS',finHistT:'Ingresos y beneficio anual',revenueL:'Ingresos',netIncomeL:'Beneficio neto',lastActionT:'Última acción de analista',sBuy:'Compra fuerte',rBuy:'Comprar',rHold:'Mantener',rSell:'Vender',sSell:'Venta fuerte',rangeD:'1D',rangeW:'1S',rangeM:'1M',range6M:'6M',rangeY:'1A',range5Y:'5A'},
+  ar:{updated:'تحديث',open:'الافتتاح',high:'أعلى اليوم',low:'أدنى اليوم',volume:'الحجم',avgVol:'متوسط الحجم',mcap:'القيمة السوقية',pe:'مكرر الربحية',eps:'ربح السهم',beta:'بيتا',div:'عائد التوزيع',w52:'نطاق 52 أسبوع',target:'هدف المحللين',analysts:'محللون',rec:'الإجماع',earnings:'التقرير القادم',sector:'القطاع',employees:'موظفون',aiCta:'تريد تحليل ذكاء اصطناعي ذكي؟',aiCtaNoKey:'اربط الذكاء الاصطناعي مجاناً (دقيقتان) واحصل على تحليل كامل',btnAnalyze:'▶ تحليل AI',btnConnect:'⚙ ربط AI',forex:'💱 عملات',crypto:'₿ كريبتو',preMarket:'قبل السوق',postMarket:'بعد السوق',marketOpen:'● السوق مفتوح',marketClosed:'○ السوق مغلق',dataErr:'خطأ في التحميل — حاول مجدداً',disclaimer:'⚠ البيانات مأخوذة من مصادر خارجية (Yahoo Finance وغيرها) وتُعرض للراحة فقط. قد تحدث تأخيرات أو أخطاء. تحقق من مصدر معتمد قبل اتخاذ القرار. التطبيق والمطورون غير مسؤولين عن أي ضرر.',newsTitle:'📰 آخر الأخبار',tabOverview:'نظرة عامة',tabAnalysts:'المحللون',tabFinance:'المالية',tabCompany:'الشركة',tabNews:'الأخبار',insiderT:'👤 صفقات المطلعين',margin:'هامش الربح',roe:'العائد على الحقوق',revGrowth:'نمو الإيرادات',cash:'النقد',debt:'الدين',fcf:'التدفق الحر',insiders:'الداخليون %',inst:'المؤسسات %',shortF:'البيع المكشوف %',ma50:'متوسط 50 يوم',ma200:'متوسط 200 يوم',recTrendT:'توصيات المحللين',earnHistT:'سجل تقارير EPS',finHistT:'الإيرادات والربح السنوي',revenueL:'الإيرادات',netIncomeL:'صافي الربح',lastActionT:'آخر إجراء محلل',sBuy:'شراء قوي',rBuy:'شراء',rHold:'احتفاظ',rSell:'بيع',sSell:'بيع قوي',rangeD:'يوم',rangeW:'أسبوع',rangeM:'شهر',range6M:'6ش',rangeY:'سنة',range5Y:'5س'}
 };
 function LT(k){var l=LIVE_T[curLang]||LIVE_T.en;return l[k]||LIVE_T.en[k]||k;}
 
@@ -2211,7 +2220,7 @@ function quickLive(sym){document.getElementById('stockInput').value=sym;loadLive
 /* ── LIVE CARD TABS — מנוע טאבים ── */
 var LIVE_TAB_DEFS=[
   ['overview','tabOverview',['lvChartWrap','lvMetrics']],
-  ['analysts','tabAnalysts',['lvAnalyst','lvRecTrend','lvEarnHist','lvLastAction']],
+  ['analysts','tabAnalysts',['lvAnalyst','lvRecTrend','lvEarnHist','lvLastAction','lvInsiders']],
   ['finance','tabFinance',['lvFinHist']],
   ['company','tabCompany',['lvCompany']],
   ['news','tabNews',['lvNews']]
@@ -2243,7 +2252,7 @@ function applyLiveTabs(){
     var active=def[0]===currentLiveTab;
     def[2].forEach(function(id){
       var el=document.getElementById(id);if(!el)return;
-      var disp=(id==='lvAnalyst')?'flex':'block';
+      var disp=(id==='lvAnalyst')?'flex':(id==='lvMetrics')?'grid':'block';
       el.style.display=(active&&sectionHas(id))?disp:'none';
     });
   });
@@ -2261,7 +2270,7 @@ async function loadLiveData(symbol){
   document.getElementById('lvChange').textContent='';
   document.getElementById('lvMetrics').innerHTML='';
   currentLiveTab='overview';
-  ['lvAnalyst','lvCompany','lvNews','lvRecTrend','lvEarnHist','lvFinHist','lvLastAction'].forEach(function(id){
+  ['lvAnalyst','lvCompany','lvNews','lvRecTrend','lvEarnHist','lvFinHist','lvLastAction','lvInsiders'].forEach(function(id){
     var e=document.getElementById(id);if(e){e.innerHTML='';e.style.display='none';}
   });
   try{
@@ -2411,6 +2420,25 @@ function renderLiveQuote(q){
     laEl.innerHTML='<strong>'+LT('lastActionT')+':</strong> '+escHtml(la.firm)+' — '+escHtml(la.toGrade||la.action)+(la.fromGrade&&la.fromGrade!==la.toGrade?' ('+escHtml(la.fromGrade)+' ← )':'')+(la.date?' · '+la.date:'');
     laEl.style.display='block';
   }else laEl.style.display='none';
+  // ── עסקאות בעלי עניין ──
+  var inEl=document.getElementById('lvInsiders');
+  if(inEl&&q.insiderTx&&q.insiderTx.length){
+    var irows='';
+    q.insiderTx.forEach(function(t){
+      var isBuy=/buy|purchase|acqui/i.test(t.text||'');
+      var isSell=/sale|sell|dispos/i.test(t.text||'');
+      var icol=isBuy?'var(--green)':isSell?'var(--red)':'var(--text-dim)';
+      irows+='<div style="padding:8px 0;border-bottom:1px solid rgba(128,128,128,.08);font-size:11px;line-height:1.6;">'
+        +'<strong style="color:var(--text)">'+escHtml(t.name)+'</strong>'
+        +(t.relation?' <span style="color:var(--text-muted)">· '+escHtml(t.relation)+'</span>':'')
+        +'<br><span style="color:'+icol+'">'+escHtml(t.text||'—')+'</span>'
+        +(t.shares?' <span style="color:var(--text-dim)">· '+fmtNum(t.shares)+'</span>':'')
+        +(t.value?' <span style="color:var(--text-dim)">· '+fmtPrice(t.value)+'</span>':'')
+        +(t.date?' <span style="color:var(--text-muted)">· '+escHtml(t.date)+'</span>':'')
+        +'</div>';
+    });
+    inEl.innerHTML='<div class="rec-trend-title">'+LT('insiderT')+'</div>'+irows;
+  }
   // Analyst row
   var an=document.getElementById('lvAnalyst');
   if(q.targetMean||q.recommendationKey){

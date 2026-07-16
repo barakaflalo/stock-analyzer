@@ -1,0 +1,2630 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockAI — Smart Stock Analysis</title>
+<meta name="description" content="AI-powered stock analysis for US & Israel markets">
+<meta name="theme-color" content="#0e0e0e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StockAI">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Sans+Hebrew:wght@300;400;700&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* DARK THEME */
+:root{
+  --gold:#c9a84c;--gold-light:#e8c96a;--gold-dim:#8a6d2f;
+  --bg:#050505;--bg2:#0e0e0e;--bg3:#161616;--bg4:#1e1e1e;
+  --border:#2a2416;--text:#d4c5a0;--text-dim:#6b5e3e;--text-muted:#3a3020;
+  --green:#4caf72;--red:#cf4a4a;--yellow:#c9a84c;
+  --overlay:rgba(0,0,0,.82);--card-shadow:0 4px 32px rgba(0,0,0,.6);
+}
+/* LIGHT THEME */
+body.light{
+  --bg:#f5f0e8;--bg2:#ffffff;--bg3:#f0ebe0;--bg4:#e8e0d0;
+  --border:#d4c5a0;--text:#2a1f08;--text-dim:#6b5230;--text-muted:#a08050;
+  --overlay:rgba(0,0,0,.5);--card-shadow:0 4px 32px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Hebrew',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
+body.rtl{direction:rtl;text-align:right;}
+body.ltr{direction:ltr;text-align:left;}
+body.ar-lang{font-family:'Noto Sans Arabic',sans-serif;}
+body:not(.light)::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4;}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:#050505;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s ease;}
+#splash.hide{opacity:0;pointer-events:none;}
+.splash-logo{font-family:'Playfair Display',serif;font-size:58px;font-weight:900;color:var(--gold);letter-spacing:-2px;}
+.splash-tag{font-size:11px;letter-spacing:4px;color:var(--gold-dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.splash-bar{width:160px;height:2px;background:#1a1a1a;border-radius:2px;overflow:hidden;margin-top:8px;}
+.splash-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;animation:splashLoad 1.4s ease forwards;}
+@keyframes splashLoad{0%{width:0}100%{width:100%}}
+.splash-dots{display:flex;gap:6px;margin-top:4px;}
+.splash-dot{width:5px;height:5px;border-radius:50%;background:var(--gold-dim);animation:dotPulse 1.2s ease-in-out infinite;}
+.splash-dot:nth-child(2){animation-delay:.2s;}.splash-dot:nth-child(3){animation-delay:.4s;}
+@keyframes dotPulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+/* TICKER */
+.ticker-wrap{background:var(--bg2);border-bottom:1px solid var(--border);overflow:hidden;height:32px;display:flex;align-items:center;position:relative;z-index:10;direction:ltr;}
+.ticker-track{display:flex;gap:0;animation:ticker 40s linear infinite;white-space:nowrap;direction:ltr;}
+.ticker-item{padding:0 28px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--gold-dim);letter-spacing:1px;}
+.ticker-item span{color:var(--green);margin-right:4px;}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* HEADER */
+.site-header{background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);border-bottom:1px solid var(--border);padding:20px 24px 16px;position:relative;z-index:10;}
+.header-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+.brand{display:flex;flex-direction:column;gap:4px;}
+.brand-tag{font-size:9px;letter-spacing:4px;color:var(--gold-dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.brand-name{font-family:'Playfair Display',serif;font-size:clamp(24px,4vw,38px);font-weight:900;color:var(--gold);line-height:1;letter-spacing:-1px;}
+.brand-sub{font-size:11px;color:var(--text-dim);letter-spacing:.5px;}
+.header-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
+.header-top-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+.lang-selector{display:flex;gap:5px;flex-wrap:wrap;}
+.lang-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text-dim);padding:4px 10px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;text-transform:uppercase;}
+.lang-btn:hover,.lang-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08);}
+.icon-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text-dim);width:30px;height:30px;border-radius:2px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.icon-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+.header-bottom-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.btn-watchlist{background:var(--bg3);border:1px solid var(--gold-dim);color:var(--gold);padding:6px 14px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-watchlist:hover{background:rgba(201,168,76,.08);border-color:var(--gold);}
+.watchlist-count{background:var(--gold);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;}
+.ai-status{display:flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border);border-radius:2px;background:var(--bg3);font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-dim);cursor:pointer;transition:all .2s;}
+.ai-status:hover{border-color:var(--gold-dim);}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .3s;}
+.ai-dot.connected{background:var(--green);box-shadow:0 0 6px var(--green);}
+.ai-name{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* MAIN */
+.main{max-width:900px;margin:0 auto;padding:28px 20px 60px;position:relative;z-index:10;}
+
+/* SEARCH */
+.search-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);}
+.search-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.search-label{font-size:9px;letter-spacing:3px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:14px;display:block;font-family:'IBM Plex Mono',monospace;}
+.search-row{display:flex;gap:8px;}
+.search-input{flex:1;background:var(--bg);border:1px solid var(--border);padding:13px 16px;font-size:18px;font-family:'IBM Plex Mono',monospace;color:var(--text);letter-spacing:3px;text-transform:uppercase;outline:none;border-radius:2px;direction:ltr;text-align:left;transition:border-color .2s,box-shadow .2s;}
+.search-input:focus{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-dim);}
+.search-input::placeholder{color:var(--text-muted);letter-spacing:1px;font-size:13px;}
+.btn-analyze{background:linear-gradient(135deg,var(--gold),var(--gold-dim));border:none;padding:13px 24px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;letter-spacing:2px;color:#000;cursor:pointer;text-transform:uppercase;border-radius:2px;transition:opacity .2s,transform .2s;white-space:nowrap;}
+.btn-analyze:hover{opacity:.85;transform:translateY(-1px);}
+.btn-analyze:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.quick-picks{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
+.pick-btn{background:var(--bg);border:1px solid var(--text-muted);color:var(--text-dim);padding:4px 12px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .15s;}
+.pick-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+
+/* LOADING */
+.loading-box{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:48px 28px;text-align:center;display:none;}
+.loading-box.visible{display:block;}
+.spinner{width:40px;height:40px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite;margin:0 auto 18px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-sym{font-size:20px;font-family:'IBM Plex Mono',monospace;color:var(--gold);letter-spacing:4px;margin-bottom:6px;}
+.loading-steps{margin-top:16px;display:flex;flex-direction:column;gap:6px;align-items:center;}
+.loading-step{font-size:11px;color:var(--text-muted);animation:blink 2.5s ease-in-out infinite;}
+.loading-step:nth-child(2){animation-delay:.6s;}.loading-step:nth-child(3){animation-delay:1.2s;}.loading-step:nth-child(4){animation-delay:1.8s;}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* ERROR */
+.error-box{background:rgba(207,74,74,.08);border:1px solid rgba(207,74,74,.3);border-radius:4px;padding:18px 22px;color:var(--red);font-size:13px;display:none;line-height:1.6;}
+.error-box.visible{display:block;}
+
+/* RESULT CARD */
+.result-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;display:none;animation:fadeUp .4s ease;box-shadow:var(--card-shadow);}
+.result-card.visible{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.result-header{display:flex;justify-content:space-between;align-items:center;padding:24px 28px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:14px;}
+.stock-id{display:flex;flex-direction:column;gap:3px;}
+.stock-sym{font-size:34px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);letter-spacing:3px;}
+.stock-fullname{font-size:12px;color:var(--text-dim);}
+.result-header-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px;}
+.rec-badge{padding:10px 22px;border-radius:2px;font-size:16px;font-weight:700;border:2px solid;letter-spacing:1px;}
+.rec-buy{color:var(--green);border-color:var(--green);background:rgba(76,175,114,.08);}
+.rec-sell{color:var(--red);border-color:var(--red);background:rgba(207,74,74,.08);}
+.rec-hold{color:var(--gold);border-color:var(--gold);background:rgba(201,168,76,.08);}
+.btn-add-watch{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:5px 12px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border-radius:2px;transition:all .2s;letter-spacing:1px;}
+.btn-add-watch:hover{border-color:var(--gold-dim);color:var(--gold);}
+.btn-add-watch.added{border-color:var(--green);color:var(--green);}
+.stale-bar{background:rgba(201,168,76,.06);border-bottom:1px solid var(--border);padding:8px 28px;display:none;align-items:center;justify-content:space-between;gap:8px;}
+.stale-bar.visible{display:flex;}
+.stale-text{font-size:11px;color:var(--gold-dim);font-family:'IBM Plex Mono',monospace;}
+.btn-refresh{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:4px 12px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border-radius:2px;transition:all .2s;}
+.btn-refresh:hover{background:rgba(201,168,76,.1);}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+.metric-cell{background:var(--bg2);padding:16px 20px;}
+.metric-label{font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:7px;font-family:'IBM Plex Mono',monospace;}
+.metric-val{font-size:16px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text);}
+.conf-section{padding:20px 28px;border-bottom:1px solid var(--border);}
+.conf-row{display:flex;justify-content:space-between;margin-bottom:9px;font-size:11px;}
+.conf-label{color:var(--text-dim);letter-spacing:2px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.conf-num{color:var(--gold);font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.conf-track{height:4px;background:var(--border);border-radius:3px;overflow:hidden;}
+.conf-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold-light));border-radius:3px;transition:width 1.2s cubic-bezier(.22,1,.36,1);width:0;}
+.body-sec{padding:20px 28px;border-bottom:1px solid var(--border);}
+.sec-label{font-size:9px;letter-spacing:3px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:12px;font-family:'IBM Plex Mono',monospace;}
+.summary-txt{font-size:13px;line-height:1.85;color:var(--text);}
+.factors-wrap{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+.factor-panel{background:var(--bg2);padding:20px 24px;}
+.factor-item{display:flex;align-items:flex-start;gap:9px;margin-bottom:8px;font-size:12px;line-height:1.55;color:var(--text);}
+.factor-dot{width:5px;height:5px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+.signals-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--border);}
+.signal-cell{background:var(--bg);padding:14px 16px;text-align:center;}
+.signal-lbl{font-size:8px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;}
+.signal-val{font-size:12px;font-weight:700;}
+.sources-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.source-tag{background:var(--bg);border:1px solid var(--text-muted);padding:2px 10px;font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--text-dim);border-radius:2px;}
+
+/* HISTORY */
+.history-wrap{margin-top:24px;}
+.history-title{font-size:9px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;}
+.history-items{display:flex;flex-wrap:wrap;gap:7px;}
+.hist-item{background:var(--bg2);border:1px solid var(--border);padding:8px 12px;cursor:pointer;border-radius:2px;transition:border-color .2s;display:flex;flex-direction:column;gap:2px;}
+.hist-item:hover{border-color:var(--gold-dim);}
+.hist-sym{font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.hist-rec{font-size:9px;}
+.hist-time{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+
+/* SHARE */
+.share-section{margin-top:28px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:relative;overflow:hidden;}
+.share-section::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);}
+.share-label-txt{font-size:9px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.share-btns{display:flex;gap:7px;flex-wrap:wrap;}
+.btn-share{background:linear-gradient(135deg,var(--gold-dim),#5a4520);border:1px solid var(--gold-dim);color:var(--gold-light);padding:9px 18px;font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;}
+.btn-share:hover{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;}
+.btn-more-apps{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:9px 18px;font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;}
+.btn-more-apps:hover{border-color:var(--gold-dim);color:var(--gold);}
+.disclaimer{margin-top:40px;border-top:1px solid var(--border);padding-top:16px;font-size:10px;color:var(--text-muted);line-height:1.8;text-align:center;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg2);border:1px solid var(--gold-dim);color:var(--gold);padding:9px 20px;font-size:11px;font-family:'IBM Plex Mono',monospace;border-radius:2px;opacity:0;transition:all .3s;pointer-events:none;z-index:9999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* MODAL BASE */
+.modal-overlay{position:fixed;inset:0;background:var(--overlay);z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:6px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;transform:translateY(20px);transition:transform .3s;box-shadow:var(--card-shadow);}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg2);z-index:2;}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);}
+.modal-close{background:transparent;border:1px solid var(--border);color:var(--text-dim);width:30px;height:30px;border-radius:2px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.modal-close:hover{border-color:var(--gold-dim);color:var(--gold);}
+.modal-body{padding:24px;}
+
+/* AI SETUP */
+.setup-intro{font-size:13px;color:var(--text);line-height:1.7;margin-bottom:20px;padding:14px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.15);border-radius:3px;}
+.setup-intro strong{color:var(--gold);}
+.ai-options{display:flex;flex-direction:column;gap:8px;margin-bottom:4px;}
+.ai-option{background:var(--bg3);border:2px solid var(--border);border-radius:3px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;}
+.ai-option:hover{border-color:var(--gold-dim);}
+.ai-option.selected{border-color:var(--gold);background:rgba(201,168,76,.06);}
+.ai-option-icon{font-size:22px;width:36px;text-align:center;flex-shrink:0;}
+.ai-option-info{flex:1;}
+.ai-option-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.ai-option-desc{font-size:11px;color:var(--text-dim);}
+.ai-option-badge{font-size:9px;padding:2px 7px;border-radius:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;flex-shrink:0;}
+.badge-free{background:rgba(76,175,114,.15);color:var(--green);border:1px solid rgba(76,175,114,.3);}
+.badge-paid{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.2);}
+.badge-device{background:rgba(100,100,255,.1);color:#8888ff;border:1px solid rgba(100,100,255,.2);}
+.key-area{display:none;margin-top:6px;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:3px;}
+.key-area.visible{display:block;}
+.key-label{font-size:10px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;}
+.key-input{width:100%;background:var(--bg3);border:1px solid var(--border);padding:10px 14px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--text);outline:none;border-radius:2px;transition:border-color .2s;direction:ltr;}
+.key-input:focus{border-color:var(--gold);}
+.key-hint{font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.6;}
+.key-hint a{color:var(--gold);text-decoration:none;}
+.key-hint a:hover{text-decoration:underline;}
+.key-hint-steps{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.key-step{font-size:11px;color:var(--text-muted);display:flex;gap:8px;line-height:1.5;}
+.key-step-num{color:var(--gold-dim);font-family:'IBM Plex Mono',monospace;flex-shrink:0;font-weight:700;}
+.device-ai-info{font-size:12px;color:var(--text);line-height:1.6;}
+.btn-setup-save{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));border:none;padding:13px;font-size:12px;font-family:'IBM Plex Mono',monospace;font-weight:700;letter-spacing:2px;color:#000;cursor:pointer;border-radius:2px;transition:all .2s;margin-top:16px;text-transform:uppercase;}
+.btn-setup-save:hover{opacity:.88;}
+.guide-note-inline{background:rgba(76,175,114,.06);border:1px solid rgba(76,175,114,.2);border-radius:3px;padding:10px 14px;font-size:11px;color:var(--text-dim);line-height:1.6;margin-top:8px;}
+
+/* GUIDE */
+.guide-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;}
+.guide-tab{flex:1;min-width:70px;padding:10px 6px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;text-align:center;white-space:nowrap;}
+.guide-tab:hover{color:var(--text-dim);}
+.guide-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.guide-pane{display:none;padding:20px 24px;}
+.guide-pane.active{display:block;}
+.guide-section{margin-bottom:22px;}
+.guide-section-title{font-size:10px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:10px;font-family:'IBM Plex Mono',monospace;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.guide-item{display:flex;gap:10px;margin-bottom:10px;font-size:12px;color:var(--text);line-height:1.65;}
+.guide-icon{font-size:16px;flex-shrink:0;width:24px;text-align:center;margin-top:1px;}
+.guide-text strong{color:var(--gold);}
+.guide-step{display:flex;gap:10px;margin-bottom:12px;font-size:12px;line-height:1.65;}
+.guide-step-num{background:var(--gold-dim);color:#000;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'IBM Plex Mono',monospace;margin-top:1px;}
+.guide-step-text{color:var(--text);}
+.guide-step-text strong{color:var(--gold);}
+.guide-step-text a{color:var(--gold);text-decoration:none;}
+.guide-step-text a:hover{text-decoration:underline;}
+.guide-note{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:3px;padding:10px 14px;font-size:11px;color:var(--text-dim);line-height:1.6;margin-top:8px;}
+
+/* WATCHLIST PANEL */
+.watch-overlay{position:fixed;inset:0;background:var(--overlay);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;}
+.watch-overlay.open{opacity:1;pointer-events:all;}
+.watch-panel{position:fixed;top:0;right:0;height:100%;width:min(420px,100vw);background:var(--bg2);border-left:1px solid var(--border);z-index:201;transform:translateX(110%);transition:transform .35s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--card-shadow);}
+body.ltr .watch-panel{right:auto;left:0;border-left:none;border-right:1px solid var(--border);transform:translateX(-110%);}
+.watch-panel.open{transform:translateX(0);}
+.watch-panel-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3);flex-shrink:0;}
+.watch-panel-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);}
+.watch-close{background:transparent;border:1px solid var(--border);color:var(--text-dim);width:30px;height:30px;border-radius:2px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.watch-close:hover{border-color:var(--gold-dim);color:var(--gold);}
+.watch-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.watch-tab{flex:1;padding:10px 6px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;text-align:center;}
+.watch-tab:hover{color:var(--text-dim);}
+.watch-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(201,168,76,.04);}
+.watch-body{flex:1;overflow-y:auto;}
+.watch-body::-webkit-scrollbar{width:3px;}
+.watch-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.tab-pane{display:none;padding:18px;}
+.tab-pane.active{display:block;}
+.watch-add-row{display:flex;gap:7px;margin-bottom:14px;}
+.watch-add-input{flex:1;background:var(--bg);border:1px solid var(--border);padding:9px 12px;font-size:14px;font-family:'IBM Plex Mono',monospace;color:var(--text);letter-spacing:2px;text-transform:uppercase;outline:none;border-radius:2px;direction:ltr;}
+.watch-add-input:focus{border-color:var(--gold);}
+.watch-add-btn{background:var(--gold-dim);border:none;color:#000;padding:9px 14px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:700;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;}
+.watch-add-btn:hover{background:var(--gold);}
+.watch-items-list{display:flex;flex-direction:column;gap:5px;}
+.watch-item{background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:7px;transition:border-color .15s;}
+.watch-item:hover{border-color:var(--gold-dim);}
+.watch-item-left{display:flex;flex-direction:column;gap:2px;flex:1;}
+.watch-item-sym{font-size:14px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);cursor:pointer;}
+.watch-item-sym:hover{color:var(--gold);}
+.watch-item-age{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+.watch-item-actions{display:flex;gap:5px;}
+.btn-analyze-watch{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:4px 10px;font-size:9px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border-radius:2px;transition:all .15s;letter-spacing:1px;}
+.btn-analyze-watch:hover{background:var(--gold-dim);color:#000;}
+.btn-remove-watch{background:transparent;border:1px solid rgba(207,74,74,.3);color:var(--red);width:24px;height:24px;font-size:13px;cursor:pointer;border-radius:2px;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.btn-remove-watch:hover{background:rgba(207,74,74,.1);}
+.watch-empty{text-align:center;padding:36px 16px;color:var(--text-muted);font-size:12px;line-height:1.8;}
+.watch-empty-icon{font-size:28px;margin-bottom:10px;opacity:.4;}
+.btn-analyze-all{width:100%;background:linear-gradient(135deg,var(--gold-dim),#3a2a10);border:1px solid var(--gold-dim);color:var(--gold-light);padding:10px;font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .2s;margin-bottom:12px;text-transform:uppercase;}
+.btn-analyze-all:hover{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#000;}
+.btn-analyze-all:disabled{opacity:.4;cursor:not-allowed;}
+.watch-backup-row{display:flex;gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.btn-backup{flex:1;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:7px;font-size:9px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;text-align:center;}
+.btn-backup:hover{border-color:var(--gold-dim);color:var(--gold);}
+.preset-grid{display:flex;flex-direction:column;gap:5px;}
+.preset-item{background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:7px;transition:border-color .15s;}
+.preset-item:hover{border-color:var(--gold-dim);}
+.preset-sym{font-size:13px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);}
+.preset-name{font-size:10px;color:var(--text-dim);flex:1;margin:0 8px;}
+.preset-actions{display:flex;gap:5px;}
+.btn-preset-analyze{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:3px 9px;font-size:9px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border-radius:2px;transition:all .15s;}
+.btn-preset-analyze:hover{background:var(--gold-dim);color:#000;}
+.btn-preset-add{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:3px 9px;font-size:9px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border-radius:2px;transition:all .15s;}
+.btn-preset-add:hover{border-color:var(--green);color:var(--green);}
+.btn-preset-add.added{border-color:var(--green);color:var(--green);}
+.all-results-wrap{margin-top:10px;}
+.all-result-row{background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;gap:7px;cursor:pointer;transition:border-color .15s;}
+.all-result-row:hover{border-color:var(--gold-dim);}
+.all-result-sym{font-size:13px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);min-width:55px;}
+.all-result-rec{font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.all-result-conf{font-size:10px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;}
+.all-result-loading{font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;animation:blink 1.5s ease-in-out infinite;}
+
+/* PWA BANNER */
+.pwa-banner{background:linear-gradient(135deg,rgba(201,168,76,.08),var(--bg));border:1px solid var(--gold-dim);border-radius:4px;padding:12px 16px;margin-bottom:18px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.pwa-banner.visible{display:flex;}
+.pwa-banner-text{font-size:12px;color:var(--text);line-height:1.5;}
+.pwa-banner-text strong{color:var(--gold);}
+.btn-pwa-install{background:var(--gold-dim);border:none;color:#000;padding:7px 16px;font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:700;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;}
+.btn-pwa-install:hover{background:var(--gold);}
+.btn-pwa-dismiss{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:7px 10px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border-radius:2px;}
+
+/* RESPONSIVE */
+@media(max-width:520px){
+  .search-row{flex-direction:column;}
+  .result-header{flex-direction:column;}
+  .factors-wrap{grid-template-columns:1fr;}
+  .site-header{padding:16px 14px 12px;}
+  .main{padding:18px 12px 48px;}
+  .share-section{flex-direction:column;align-items:flex-start;}
+  .modal-box{max-height:95vh;}
+  .header-top-row,.header-bottom-row{justify-content:flex-start;}
+  .live-metrics{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ══ LIVE DATA CARD ══ */
+.live-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;display:none;margin-bottom:20px;animation:fadeUp .4s ease;box-shadow:var(--card-shadow);}
+.live-card.visible{display:block;}
+.live-header{padding:20px 24px 14px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--border);}
+.live-price-block{display:flex;flex-direction:column;gap:2px;}
+.live-sym-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.live-sym{font-size:22px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);letter-spacing:2px;}
+.live-name{font-size:11px;color:var(--text-dim);}
+.live-exchange{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;background:var(--bg3);padding:2px 8px;border-radius:2px;}
+.live-price{font-size:38px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);line-height:1.1;margin-top:4px;}
+.live-change{font-size:14px;font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.live-change.up{color:var(--green);}
+.live-change.down{color:var(--red);}
+.live-market-state{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+.live-updated{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-align:end;}
+/* Chart */
+.chart-wrap{padding:14px 20px 6px;border-bottom:1px solid var(--border);}
+.chart-ranges{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+.chart-range-btn{background:var(--bg);border:1px solid var(--border);color:var(--text-dim);padding:4px 12px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border-radius:2px;transition:all .15s;}
+.chart-range-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+.chart-range-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08);}
+.chart-canvas-wrap{position:relative;height:180px;}
+#liveChart{width:100%;height:100%;}
+.chart-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+/* Live metrics grid */
+.live-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--border);}
+.live-metric{background:var(--bg2);padding:12px 16px;}
+.live-metric-lbl{font-size:8px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px;font-family:'IBM Plex Mono',monospace;}
+.live-metric-val{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text);}
+/* Analyst row */
+.live-analyst{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.live-analyst-item{display:flex;flex-direction:column;gap:2px;}
+.live-analyst-lbl{font-size:8px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.live-analyst-val{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+/* Company info */
+.live-company{padding:14px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim);line-height:1.7;}
+.live-company strong{color:var(--text);}
+/* AI CTA inside live card */
+.live-ai-cta{padding:14px 20px;border-top:1px solid var(--border);background:rgba(201,168,76,.04);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.live-ai-cta-text{font-size:12px;color:var(--text);line-height:1.5;}
+.btn-ai-analyze{background:linear-gradient(135deg,var(--gold),var(--gold-dim));border:none;padding:9px 20px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:700;letter-spacing:1px;color:#000;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;}
+.btn-ai-analyze:hover{opacity:.88;}
+
+/* ══ FX + CRYPTO STRIP ══ */
+.fx-section{background:var(--bg2);border:1px solid var(--border);border-radius:4px;margin-bottom:20px;overflow:hidden;}
+.fx-tabs{display:flex;border-bottom:1px solid var(--border);}
+.fx-tab{flex:1;padding:9px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;text-align:center;}
+.fx-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.fx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:1px;background:var(--border);}
+.fx-cell{background:var(--bg2);padding:10px 12px;text-align:center;}
+.fx-pair{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:4px;}
+.fx-rate{font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text);}
+.fx-chg{font-size:9px;font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.fx-loading{padding:20px;text-align:center;font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+
+/* ══ GLOBAL DATA DISCLAIMER ══ */
+.data-disclaimer{background:rgba(201,168,76,.04);border:1px solid var(--border);border-radius:3px;padding:8px 14px;margin-bottom:16px;font-size:9px;color:var(--text-muted);line-height:1.6;text-align:center;}
+.data-disclaimer .dd-link{color:var(--gold-dim);cursor:pointer;text-decoration:underline;}
+
+/* ══ NEWS SECTION ══ */
+.live-news{border-top:1px solid var(--border);}
+.live-news-title{padding:12px 20px 4px;font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.news-item{display:block;padding:10px 20px;border-bottom:1px solid rgba(128,128,128,.06);text-decoration:none;transition:background .15s;}
+.news-item:hover{background:rgba(201,168,76,.03);}
+.news-item:last-child{border-bottom:none;}
+.news-title{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:3px;}
+.news-meta{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+/* Live card tabs — טאבים כמו באפליקציות מסחר */
+.live-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--bg3);direction:inherit;}
+.live-tab{flex:1;min-width:70px;padding:10px 8px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;text-align:center;white-space:nowrap;}
+.live-tab:hover{color:var(--text-dim);}
+.live-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(201,168,76,.05);}
+/* Advanced sections */
+.rec-trend-wrap{padding:14px 20px;border-top:1px solid var(--border);}
+.rec-trend-title{font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:10px;}
+.rec-bar{display:flex;height:14px;border-radius:2px;overflow:hidden;margin-bottom:8px;direction:ltr;}
+.rec-seg{height:100%;}
+.rec-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--text-dim);}
+.rec-legend span{display:flex;align-items:center;gap:4px;}
+.rec-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.earn-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.earn-chip{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:7px 10px;text-align:center;flex:1;min-width:75px;}
+.earn-q{font-size:8px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;margin-bottom:3px;}
+.earn-val{font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.earn-sur{font-size:9px;font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.fin-bars{display:flex;gap:14px;align-items:flex-end;height:90px;padding:4px 0;direction:ltr;}
+.fin-year{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;}
+.fin-bar-pair{display:flex;gap:3px;align-items:flex-end;height:70px;}
+.fin-bar{width:16px;border-radius:2px 2px 0 0;min-height:2px;}
+.fin-year-lbl{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+.fin-legend{display:flex;gap:12px;font-size:9px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;margin-top:6px;}
+.last-action{padding:10px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim);line-height:1.6;}
+.last-action strong{color:var(--gold);}
+/* Test connection button */
+.btn-test-ai{width:100%;background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:10px;font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;margin-top:8px;}
+.btn-test-ai:hover{border-color:var(--gold-dim);color:var(--gold);}
+.btn-test-ai.testing{opacity:.5;cursor:wait;}
+.btn-test-ai.ok{border-color:var(--green);color:var(--green);}
+.btn-test-ai.fail{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body class="ltr" id="appBody">
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">StockAI</div>
+  <div class="splash-tag">Smart Stock Analysis</div>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+  <div class="splash-dots"><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div></div>
+</div>
+
+<script>
+var curLang=localStorage.getItem('stockai_lang')||'he';
+var LANG={
+en:{subtitle:'US & Israel Markets — Real-time AI — Market Sentiment',searchLabel:'◈ Enter a stock symbol to analyze',placeholder:'AAPL / TSLA / TEVA...',btnAnalyze:'▶ Analyze',btnAnalyzing:'Analyzing...',loadStep1:'◈ Scanning real-time market data...',loadStep2:'◈ Checking analyst recommendations...',loadStep3:'◈ Analyzing social media sentiment...',loadStep4:'◈ Processing financial data...',metricPrice:'Current Price',metricTarget:'Price Target',metricAnalyst:'Analyst Rating',metricRisk:'Risk Level',confLabel:'Recommendation Confidence',secSummary:'◈ Analysis Summary',secBull:'▲ Bullish Factors',secBear:'▼ Bearish Factors',sigSocial:'Social Sentiment',sigTech:'Technical Signal',sigFund:'Fundamental Score',secSources:'◈ Sources',historyLabel:'◈ Recent Analyses',disclaimer:'⚠ For research purposes only — not investment advice. All decisions are solely the investor\'s responsibility.',errGeneral:'Error analyzing stock',errNoAI:'⚠ No AI connected. Please tap ⚙ to connect your AI first.',recBuy:'BUY',recSell:'SELL',recHold:'HOLD',riskLow:'Low',riskMed:'Medium',riskHigh:'High',sentPos:'Positive',sentNeu:'Neutral',sentNeg:'Negative',techUp:'Rising',techDown:'Falling',techNeu:'Neutral',confHigh:'High',confMed:'Medium',confLow:'Low',shareBtn:'⬡ Share App',shareTitle:'StockAI — Smart Stock Analysis',shareText:'Discover StockAI — Real-time AI stock analysis for US & Israel markets.',moreApps:'More apps by AppNest',watchlistBtn:'◈ Watchlist',watchPanelTitle:'My Watchlist',tabMine:'My Stocks',tabIsrael:'Israel Top',tabUS:'US Top',addPlaceholder:'Add symbol...',addBtn:'+ Add',analyzeAll:'▶ Analyze All',watchEmpty:'Your watchlist is empty.\nAdd stocks to track them.',watchEmptyIcon:'◈',backupExport:'⬇ Export',backupImport:'⬆ Import',addToWatch:'+ Watchlist',addedToWatch:'✓ Watching',analyzeBtn:'▶ Analyze',staleMsg:'Analysis from {ago} ago',staleRefresh:'↺ Refresh',pwaTitle:'Install StockAI',pwaText:'Add to home screen — use as an app!',pwaInstall:'Install',pwaDismiss:'Not now',aiConnected:'Connected',aiNotConnected:'Not connected',aiSetupTitle:'Connect Your AI',guideTitle:'User Guide',guideTab1:'App Guide',guideTab5:'On-Device'},
+he:{subtitle:'בורסות ארה"ב וישראל — AI בזמן אמת — סנטימנט שוק',searchLabel:'◈ הזן סימבול מניה לניתוח',placeholder:'AAPL / TSLA / TEVA...',btnAnalyze:'▶ נתח',btnAnalyzing:'מנתח...',loadStep1:'◈ סורק נתוני שוק בזמן אמת...',loadStep2:'◈ בודק המלצות אנליסטים...',loadStep3:'◈ מנתח סנטימנט רשתות חברתיות...',loadStep4:'◈ מעבד נתונים פיננסיים...',metricPrice:'מחיר נוכחי',metricTarget:'יעד מחיר',metricAnalyst:'דירוג אנליסטים',metricRisk:'רמת סיכון',confLabel:'רמת ביטחון בהמלצה',secSummary:'◈ סיכום ניתוח',secBull:'▲ גורמים חיוביים',secBear:'▼ גורמים שליליים',sigSocial:'סנטימנט חברתי',sigTech:'אינדיקטור טכני',sigFund:'ציון פנדמנטלי',secSources:'◈ מקורות',historyLabel:'◈ ניתוחים אחרונים',disclaimer:'⚠ למטרות מחקר בלבד — אינה ייעוץ השקעות.',errGeneral:'שגיאה בניתוח המניה',errNoAI:'⚠ לא מחובר ל-AI. לחץ ⚙ כדי לחבר את ה-AI שלך.',recBuy:'קנה',recSell:'מכור',recHold:'החזק',riskLow:'נמוך',riskMed:'בינוני',riskHigh:'גבוה',sentPos:'חיובי',sentNeu:'ניטרלי',sentNeg:'שלילי',techUp:'עולה',techDown:'יורד',techNeu:'ניטרלי',confHigh:'גבוה',confMed:'בינוני',confLow:'נמוך',shareBtn:'⬡ שתף',shareTitle:'StockAI — ניתוח מניות חכם',shareText:'גלה את StockAI — אנליזת מניות בזמן אמת עם AI.',moreApps:'עוד אפליקציות AppNest',watchlistBtn:'◈ מעקב',watchPanelTitle:'רשימת המעקב שלי',tabMine:'המניות שלי',tabIsrael:'מובילות ישראל',tabUS:'מובילות ארה"ב',addPlaceholder:'הוסף סימבול...',addBtn:'+ הוסף',analyzeAll:'▶ נתח הכל',watchEmpty:'רשימת המעקב שלך ריקה.\nהוסף מניות לעקוב אחריהן.',watchEmptyIcon:'◈',backupExport:'⬇ גבה',backupImport:'⬆ שחזר',addToWatch:'+ מעקב',addedToWatch:'✓ במעקב',analyzeBtn:'▶ נתח',staleMsg:'ניתוח מלפני {ago}',staleRefresh:'↺ רענן',pwaTitle:'התקן את StockAI',pwaText:'הוסף למסך הבית — השתמש כאפליקציה!',pwaInstall:'התקן',pwaDismiss:'לא עכשיו',aiConnected:'מחובר',aiNotConnected:'לא מחובר',aiSetupTitle:'חבר את ה-AI שלך',guideTitle:'מדריך משתמש',guideTab1:'מדריך האפליקציה',guideTab5:'במכשיר'},
+ru:{subtitle:'Биржи США и Израиля — ИИ в реальном времени — Настроения рынка',searchLabel:'◈ Введите тикер акции для анализа',placeholder:'AAPL / TSLA / TEVA...',btnAnalyze:'▶ Анализ',btnAnalyzing:'Анализирую...',loadStep1:'◈ Сканирование рыночных данных...',loadStep2:'◈ Проверка рекомендаций...',loadStep3:'◈ Анализ настроений в соцсетях...',loadStep4:'◈ Обработка финансовых данных...',metricPrice:'Текущая цена',metricTarget:'Целевая цена',metricAnalyst:'Рейтинг аналитиков',metricRisk:'Уровень риска',confLabel:'Уверенность в рекомендации',secSummary:'◈ Резюме',secBull:'▲ Позитивные факторы',secBear:'▼ Негативные факторы',sigSocial:'Соц. настроения',sigTech:'Технический сигнал',sigFund:'Фундаментальный балл',secSources:'◈ Источники',historyLabel:'◈ Последние анализы',disclaimer:'⚠ Только для исследований — не инвестиционный совет.',errGeneral:'Ошибка анализа акции',errNoAI:'⚠ ИИ не подключён. Нажмите ⚙ для настройки.',recBuy:'КУПИТЬ',recSell:'ПРОДАТЬ',recHold:'ДЕРЖАТЬ',riskLow:'Низкий',riskMed:'Средний',riskHigh:'Высокий',sentPos:'Позитивный',sentNeu:'Нейтральный',sentNeg:'Негативный',techUp:'Рост',techDown:'Падение',techNeu:'Нейтральный',confHigh:'Высокая',confMed:'Средняя',confLow:'Низкая',shareBtn:'⬡ Поделиться',shareTitle:'StockAI — Умный анализ акций',shareText:'Откройте StockAI — анализ акций с ИИ в реальном времени.',moreApps:'Другие приложения AppNest',watchlistBtn:'◈ Список',watchPanelTitle:'Мой список слежения',tabMine:'Мои акции',tabIsrael:'Топ Израиль',tabUS:'Топ США',addPlaceholder:'Добавить тикер...',addBtn:'+ Добавить',analyzeAll:'▶ Анализировать всё',watchEmpty:'Список слежения пуст.\nДобавьте акции.',watchEmptyIcon:'◈',backupExport:'⬇ Экспорт',backupImport:'⬆ Импорт',addToWatch:'+ Слежение',addedToWatch:'✓ Слежу',analyzeBtn:'▶ Анализ',staleMsg:'Анализ {ago} назад',staleRefresh:'↺ Обновить',pwaTitle:'Установить StockAI',pwaText:'Добавьте на главный экран!',pwaInstall:'Установить',pwaDismiss:'Не сейчас',aiConnected:'Подключён',aiNotConnected:'Не подключён',aiSetupTitle:'Подключить ИИ',guideTitle:'Руководство',guideTab1:'Руководство',guideTab5:'На устройстве'},
+es:{subtitle:'Bolsas de EEUU e Israel — IA en tiempo real — Sentimiento del mercado',searchLabel:'◈ Ingresa el símbolo de una acción',placeholder:'AAPL / TSLA / TEVA...',btnAnalyze:'▶ Analizar',btnAnalyzing:'Analizando...',loadStep1:'◈ Escaneando datos de mercado...',loadStep2:'◈ Revisando recomendaciones...',loadStep3:'◈ Analizando sentimiento social...',loadStep4:'◈ Procesando datos financieros...',metricPrice:'Precio actual',metricTarget:'Precio objetivo',metricAnalyst:'Calificación',metricRisk:'Riesgo',confLabel:'Confianza en la recomendación',secSummary:'◈ Resumen',secBull:'▲ Factores positivos',secBear:'▼ Factores negativos',sigSocial:'Sentimiento social',sigTech:'Señal técnica',sigFund:'Puntuación fundamental',secSources:'◈ Fuentes',historyLabel:'◈ Análisis recientes',disclaimer:'⚠ Solo para investigación — no es asesoramiento de inversión.',errGeneral:'Error al analizar',errNoAI:'⚠ Sin IA conectada. Toca ⚙ para conectar tu IA.',recBuy:'COMPRAR',recSell:'VENDER',recHold:'MANTENER',riskLow:'Bajo',riskMed:'Medio',riskHigh:'Alto',sentPos:'Positivo',sentNeu:'Neutral',sentNeg:'Negativo',techUp:'Subiendo',techDown:'Bajando',techNeu:'Neutral',confHigh:'Alta',confMed:'Media',confLow:'Baja',shareBtn:'⬡ Compartir',shareTitle:'StockAI — Análisis de Acciones',shareText:'Descubre StockAI — Análisis de acciones con IA en tiempo real.',moreApps:'Más apps de AppNest',watchlistBtn:'◈ Lista',watchPanelTitle:'Mi lista de seguimiento',tabMine:'Mis acciones',tabIsrael:'Top Israel',tabUS:'Top EEUU',addPlaceholder:'Agregar símbolo...',addBtn:'+ Agregar',analyzeAll:'▶ Analizar todo',watchEmpty:'Tu lista está vacía.\nAgrega acciones.',watchEmptyIcon:'◈',backupExport:'⬇ Exportar',backupImport:'⬆ Importar',addToWatch:'+ Seguir',addedToWatch:'✓ Siguiendo',analyzeBtn:'▶ Analizar',staleMsg:'Análisis de hace {ago}',staleRefresh:'↺ Actualizar',pwaTitle:'Instalar StockAI',pwaText:'¡Agrega a la pantalla de inicio!',pwaInstall:'Instalar',pwaDismiss:'Ahora no',aiConnected:'Conectado',aiNotConnected:'No conectado',aiSetupTitle:'Conectar tu IA',guideTitle:'Guía de usuario',guideTab1:'Guía',guideTab5:'En dispositivo'},
+ar:{subtitle:'أسواق الولايات المتحدة وإسرائيل — ذكاء اصطناعي فوري — معنويات السوق',searchLabel:'◈ أدخل رمز السهم للتحليل',placeholder:'AAPL / TSLA / TEVA...',btnAnalyze:'▶ تحليل',btnAnalyzing:'جارٍ التحليل...',loadStep1:'◈ مسح بيانات السوق...',loadStep2:'◈ فحص توصيات المحللين...',loadStep3:'◈ تحليل مشاعر التواصل الاجتماعي...',loadStep4:'◈ معالجة البيانات المالية...',metricPrice:'السعر الحالي',metricTarget:'السعر المستهدف',metricAnalyst:'تقييم المحللين',metricRisk:'مستوى المخاطرة',confLabel:'مستوى الثقة بالتوصية',secSummary:'◈ ملخص التحليل',secBull:'▲ عوامل إيجابية',secBear:'▼ عوامل سلبية',sigSocial:'المشاعر الاجتماعية',sigTech:'الإشارة التقنية',sigFund:'النقاط الأساسية',secSources:'◈ المصادر',historyLabel:'◈ آخر التحليلات',disclaimer:'⚠ للبحث فقط — لا تمثل نصيحة استثمارية.',errGeneral:'خطأ في تحليل السهم',errNoAI:'⚠ لا يوجد ذكاء اصطناعي متصل. اضغط ⚙ للإعداد.',recBuy:'شراء',recSell:'بيع',recHold:'احتفاظ',riskLow:'منخفض',riskMed:'متوسط',riskHigh:'مرتفع',sentPos:'إيجابي',sentNeu:'محايد',sentNeg:'سلبي',techUp:'صاعد',techDown:'هابط',techNeu:'محايد',confHigh:'عالٍ',confMed:'متوسط',confLow:'منخفض',shareBtn:'⬡ مشاركة',shareTitle:'StockAI — تحليل ذكي للأسهم',shareText:'اكتشف StockAI — تحليل الأسهم بالذكاء الاصطناعي الفوري.',moreApps:'مزيد من تطبيقات AppNest',watchlistBtn:'◈ متابعة',watchPanelTitle:'قائمة متابعتي',tabMine:'أسهمي',tabIsrael:'أفضل إسرائيل',tabUS:'أفضل أمريكا',addPlaceholder:'أضف رمزاً...',addBtn:'+ إضافة',analyzeAll:'▶ تحليل الكل',watchEmpty:'قائمتك فارغة.\nأضف أسهماً لمتابعتها.',watchEmptyIcon:'◈',backupExport:'⬇ تصدير',backupImport:'⬆ استيراد',addToWatch:'+ متابعة',addedToWatch:'✓ متابعة',analyzeBtn:'▶ تحليل',staleMsg:'تحليل منذ {ago}',staleRefresh:'↺ تحديث',pwaTitle:'تثبيت StockAI',pwaText:'أضف إلى الشاشة الرئيسية!',pwaInstall:'تثبيت',pwaDismiss:'ليس الآن',aiConnected:'متصل',aiNotConnected:'غير متصل',aiSetupTitle:'ربط الذكاء الاصطناعي',guideTitle:'دليل المستخدم',guideTab1:'الدليل',guideTab5:'على الجهاز'}
+};
+function T(k){return(LANG[curLang]&&LANG[curLang][k])||(LANG.en&&LANG.en[k])||k;}
+function setLang(lang){
+  curLang=lang;localStorage.setItem('stockai_lang',lang);
+  var body=document.getElementById('appBody');
+  if(lang==='he'||lang==='ar'){body.className=body.className.replace(/\bltr\b|\brtl\b/g,'').trim()+' rtl';document.documentElement.setAttribute('dir','rtl');}
+  else{body.className=body.className.replace(/\bltr\b|\brtl\b/g,'').trim()+' ltr';document.documentElement.setAttribute('dir','ltr');}
+  if(lang==='ar')body.classList.add('ar-lang');else body.classList.remove('ar-lang');
+  document.documentElement.setAttribute('lang',lang);
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  var ab=document.getElementById('lang-'+lang);if(ab)ab.classList.add('active');
+  renderText();renderWatchlist();
+}
+function renderText(){
+  document.querySelectorAll('[data-t]').forEach(function(el){el.textContent=T(el.getAttribute('data-t'));});
+  document.querySelectorAll('[data-tp]').forEach(function(el){el.placeholder=T(el.getAttribute('data-tp'));});
+  var d=document.getElementById('disclaimer');if(d)d.textContent=T('disclaimer');
+  updateAIStatus();
+}
+</script>
+
+<!-- TICKER -->
+<div class="ticker-wrap"><div class="ticker-track" id="tickerTrack">
+<span class="ticker-item" style="color:var(--text-muted)">◈ StockAI — Loading live market data...</span>
+</div></div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-tag">◈ AppNest &mdash; StockAI Pro</div>
+      <div class="brand-name">StockAI</div>
+      <div class="brand-sub" data-t="subtitle"></div>
+    </div>
+    <div class="header-right">
+      <div class="header-top-row">
+        <div class="lang-selector">
+          <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" id="lang-he" onclick="setLang('he')">עב</button>
+          <button class="lang-btn" id="lang-ru" onclick="setLang('ru')">RU</button>
+          <button class="lang-btn" id="lang-es" onclick="setLang('es')">ES</button>
+          <button class="lang-btn" id="lang-ar" onclick="setLang('ar')">عر</button>
+        </div>
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+        <button class="icon-btn" onclick="openGuide()">?</button>
+      </div>
+      <div class="header-bottom-row">
+        <div class="ai-status" onclick="openSetup()" id="aiStatusBtn">
+          <div class="ai-dot" id="aiDot"></div>
+          <span class="ai-name" id="aiStatusName"></span>
+          <span style="font-size:9px;opacity:.5;">⚙</span>
+        </div>
+        <button class="btn-watchlist" onclick="openWatchPanel()">
+          <span data-t="watchlistBtn"></span>
+          <span class="watchlist-count" id="watchCount">0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="pwa-banner" id="pwaBanner">
+    <div class="pwa-banner-text"><strong id="pwaBannerTitle"></strong><br><span id="pwaBannerText"></span></div>
+    <div style="display:flex;gap:7px;">
+      <button class="btn-pwa-install" onclick="installPWA()" data-t="pwaInstall"></button>
+      <button class="btn-pwa-dismiss" onclick="dismissPWA()" data-t="pwaDismiss"></button>
+    </div>
+  </div>
+
+  <div class="search-card">
+    <span class="search-label" data-t="searchLabel"></span>
+    <div class="search-row">
+      <input type="text" class="search-input" id="stockInput" data-tp="placeholder" onkeydown="if(event.key==='Enter')analyzeStock()">
+      <button class="btn-analyze" id="btnAnalyze" onclick="analyzeStock()" data-t="btnAnalyze"></button>
+    </div>
+    <div class="quick-picks">
+      <button class="pick-btn" onclick="quickAnalyze('AAPL')">AAPL</button>
+      <button class="pick-btn" onclick="quickAnalyze('TSLA')">TSLA</button>
+      <button class="pick-btn" onclick="quickAnalyze('NVDA')">NVDA</button>
+      <button class="pick-btn" onclick="quickAnalyze('MSFT')">MSFT</button>
+      <button class="pick-btn" onclick="quickAnalyze('GOOGL')">GOOGL</button>
+      <button class="pick-btn" onclick="quickAnalyze('TEVA')">TEVA</button>
+      <button class="pick-btn" onclick="quickAnalyze('CHKP')">CHKP</button>
+      <button class="pick-btn" onclick="quickAnalyze('MNDY')">MNDY</button>
+      <button class="pick-btn" onclick="quickAnalyze('WIX')">WIX</button>
+      <button class="pick-btn" onclick="quickAnalyze('NICE')">NICE</button>
+    </div>
+  </div>
+
+  <!-- ══ DATA DISCLAIMER ══ -->
+  <div class="data-disclaimer" id="dataDisclaimer"></div>
+
+  <!-- ══ LIVE DATA CARD — נתונים חיים בחינם ══ -->
+  <div class="live-card" id="liveCard">
+    <div class="live-header">
+      <div class="live-price-block">
+        <div class="live-sym-row">
+          <span class="live-sym" id="lvSym"></span>
+          <span class="live-exchange" id="lvExchange"></span>
+        </div>
+        <div class="live-name" id="lvName"></div>
+        <div class="live-price" id="lvPrice"></div>
+        <div class="live-change" id="lvChange"></div>
+        <div class="live-market-state" id="lvMarketState"></div>
+      </div>
+      <div class="live-updated" id="lvUpdated"></div>
+    </div>
+    <div class="live-tabs" id="liveTabs"></div>
+    <div class="chart-wrap" id="lvChartWrap">
+      <div class="chart-ranges" id="chartRanges"></div>
+      <div class="chart-canvas-wrap">
+        <canvas id="liveChart"></canvas>
+        <div class="chart-loading" id="chartLoading" style="display:none"></div>
+      </div>
+    </div>
+    <div class="live-metrics" id="lvMetrics"></div>
+    <div class="live-analyst" id="lvAnalyst" style="display:none"></div>
+    <div class="rec-trend-wrap" id="lvRecTrend" style="display:none"></div>
+    <div class="rec-trend-wrap" id="lvEarnHist" style="display:none"></div>
+    <div class="rec-trend-wrap" id="lvFinHist" style="display:none"></div>
+    <div class="last-action" id="lvLastAction" style="display:none"></div>
+    <div class="rec-trend-wrap" id="lvInsiders" style="display:none"></div>
+    <div class="live-company" id="lvCompany" style="display:none"></div>
+    <div class="live-news" id="lvNews" style="display:none"></div>
+    <div class="live-ai-cta" id="lvAiCta">
+      <div class="live-ai-cta-text" id="lvAiCtaText"></div>
+      <button class="btn-ai-analyze" id="btnAiFromLive" onclick="analyzeStock(currentLiveSymbol)"></button>
+    </div>
+  </div>
+
+  <!-- ══ FX + CRYPTO ══ -->
+  <div class="fx-section" id="fxSection">
+    <div class="fx-tabs">
+      <button class="fx-tab active" id="fxtab-forex" onclick="switchFxTab('forex')"></button>
+      <button class="fx-tab" id="fxtab-crypto" onclick="switchFxTab('crypto')"></button>
+    </div>
+    <div id="fxContent"><div class="fx-loading">◈ ...</div></div>
+  </div>
+
+  <div class="loading-box" id="loadingBox">
+    <div class="spinner"></div>
+    <div class="loading-sym" id="loadingSym"></div>
+    <div class="loading-steps">
+      <div class="loading-step" data-t="loadStep1"></div>
+      <div class="loading-step" data-t="loadStep2"></div>
+      <div class="loading-step" data-t="loadStep3"></div>
+      <div class="loading-step" data-t="loadStep4"></div>
+    </div>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <div class="stock-id">
+        <div class="stock-sym" id="rSym"></div>
+        <div class="stock-fullname" id="rName"></div>
+      </div>
+      <div class="result-header-right">
+        <div class="rec-badge" id="rRec"></div>
+        <button class="btn-add-watch" id="btnAddWatch" onclick="toggleWatchFromResult()"></button>
+      </div>
+    </div>
+    <div class="stale-bar" id="staleBar">
+      <span class="stale-text" id="staleText"></span>
+      <button class="btn-refresh" onclick="refreshAnalysis()" data-t="staleRefresh"></button>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-cell"><div class="metric-label" data-t="metricPrice"></div><div class="metric-val" id="rPrice"></div></div>
+      <div class="metric-cell"><div class="metric-label" data-t="metricTarget"></div><div class="metric-val" id="rTarget" style="color:var(--green)"></div></div>
+      <div class="metric-cell"><div class="metric-label" data-t="metricAnalyst"></div><div class="metric-val" id="rAnalyst" style="color:var(--gold)"></div></div>
+      <div class="metric-cell"><div class="metric-label" data-t="metricRisk"></div><div class="metric-val" id="rRisk"></div></div>
+    </div>
+    <div class="conf-section">
+      <div class="conf-row"><span class="conf-label" data-t="confLabel"></span><span class="conf-num" id="rConfNum"></span></div>
+      <div class="conf-track"><div class="conf-fill" id="rConfFill"></div></div>
+    </div>
+    <div class="body-sec"><div class="sec-label" data-t="secSummary"></div><div class="summary-txt" id="rSummary"></div></div>
+    <div class="factors-wrap">
+      <div class="factor-panel"><div class="sec-label" data-t="secBull"></div><div id="rBull"></div></div>
+      <div class="factor-panel"><div class="sec-label" data-t="secBear"></div><div id="rBear"></div></div>
+    </div>
+    <div class="signals-row">
+      <div class="signal-cell"><div class="signal-lbl" data-t="sigSocial"></div><div class="signal-val" id="rSocial"></div></div>
+      <div class="signal-cell"><div class="signal-lbl" data-t="sigTech"></div><div class="signal-val" id="rTech"></div></div>
+      <div class="signal-cell"><div class="signal-lbl" data-t="sigFund"></div><div class="signal-val" id="rFund" style="color:var(--gold)"></div></div>
+    </div>
+    <div class="body-sec" style="border-bottom:none">
+      <div class="sec-label" data-t="secSources"></div>
+      <div class="sources-row" id="rSources"></div>
+    </div>
+  </div>
+
+  <div class="history-wrap" id="historyWrap" style="display:none">
+    <div class="history-title" data-t="historyLabel"></div>
+    <div class="history-items" id="historyItems"></div>
+  </div>
+
+  <div class="share-section">
+    <div><div class="share-label-txt">AppNest</div><div style="font-size:12px;color:var(--text-dim);margin-top:3px;" data-t="moreApps"></div></div>
+    <div class="share-btns">
+      <button class="btn-share" onclick="shareApp()" data-t="shareBtn"></button>
+      <a class="btn-more-apps" href="https://barakaflalo.github.io/appnest" target="_blank" data-t="moreApps"></a>
+    </div>
+  </div>
+  <div class="disclaimer" id="disclaimer"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══ WATCHLIST PANEL ══ -->
+<div class="watch-overlay" id="watchOverlay" onclick="closeWatchPanel()"></div>
+<div class="watch-panel" id="watchPanel">
+  <div class="watch-panel-header">
+    <div class="watch-panel-title" id="watchPanelTitle"></div>
+    <button class="watch-close" onclick="closeWatchPanel()">✕</button>
+  </div>
+  <div class="watch-tabs">
+    <button class="watch-tab active" id="tab-mine" onclick="switchTab('mine')" data-t="tabMine"></button>
+    <button class="watch-tab" id="tab-israel" onclick="switchTab('israel')" data-t="tabIsrael"></button>
+    <button class="watch-tab" id="tab-us" onclick="switchTab('us')" data-t="tabUS"></button>
+  </div>
+  <div class="watch-body">
+    <div class="tab-pane active" id="pane-mine">
+      <div class="watch-add-row">
+        <input type="text" class="watch-add-input" id="watchAddInput" data-tp="addPlaceholder"
+          onkeydown="if(event.key==='Enter')addToWatchlist()" oninput="this.value=this.value.toUpperCase()">
+        <button class="watch-add-btn" onclick="addToWatchlist()" data-t="addBtn"></button>
+      </div>
+      <button class="btn-analyze-all" id="btnAnalyzeAll" onclick="analyzeAllWatchlist()" data-t="analyzeAll"></button>
+      <div id="allResultsWrap" class="all-results-wrap" style="display:none"></div>
+      <div class="watch-items-list" id="watchItemsList"></div>
+      <div class="watch-backup-row">
+        <button class="btn-backup" onclick="exportWatchlist()" data-t="backupExport"></button>
+        <button class="btn-backup" onclick="importWatchlist()" data-t="backupImport"></button>
+        <input type="file" id="importFileInput" accept=".json,.txt" style="display:none" onchange="handleImport(event)">
+      </div>
+    </div>
+    <div class="tab-pane" id="pane-israel"><div class="preset-grid" id="israelList"></div></div>
+    <div class="tab-pane" id="pane-us"><div class="preset-grid" id="usList"></div></div>
+  </div>
+</div>
+
+<!-- ══ AI SETUP MODAL ══ -->
+<div class="modal-overlay" id="setupOverlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" data-t="aiSetupTitle"></div>
+      <button class="modal-close" onclick="closeSetup()">✕</button>
+    </div>
+    <div class="modal-body" id="setupModalBody">
+      <!-- Rendered dynamically by renderSetup() -->
+    </div>
+  </div>
+</div>
+
+<!-- ══ GUIDE MODAL ══ -->
+<div class="modal-overlay" id="guideOverlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" data-t="guideTitle"></div>
+      <button class="modal-close" onclick="closeGuide()">✕</button>
+    </div>
+    <div class="guide-tabs" id="guideTabs"></div>
+    <div id="guidePanes"></div>
+  </div>
+</div>
+<script>
+/* ══════════════════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════════════════ */
+var ISRAEL_STOCKS=[
+  {sym:'TEVA',name:'Teva Pharmaceutical'},{sym:'CHKP',name:'Check Point Software'},
+  {sym:'NICE',name:'NICE Systems'},{sym:'MNDY',name:'Monday.com'},
+  {sym:'WIX',name:'Wix.com'},{sym:'CYBR',name:'CyberArk Software'},
+  {sym:'ESLT',name:'Elbit Systems'},{sym:'ICL',name:'ICL Group'},
+  {sym:'KRNT',name:'Kornit Digital'},{sym:'GLBE',name:'Global-E Online'},
+  {sym:'DRIO',name:'DarioHealth'},{sym:'GILT',name:'Gilat Satellite'}
+];
+var US_STOCKS=[
+  {sym:'AAPL',name:'Apple Inc.'},{sym:'MSFT',name:'Microsoft Corp.'},
+  {sym:'NVDA',name:'NVIDIA Corp.'},{sym:'TSLA',name:'Tesla Inc.'},
+  {sym:'GOOGL',name:'Alphabet Inc.'},{sym:'AMZN',name:'Amazon.com'},
+  {sym:'META',name:'Meta Platforms'},{sym:'BRK.B',name:'Berkshire Hathaway'},
+  {sym:'JPM',name:'JPMorgan Chase'},{sym:'V',name:'Visa Inc.'},
+  {sym:'UNH',name:'UnitedHealth'},{sym:'XOM',name:'Exxon Mobil'}
+];
+var AI_SYSTEM='You are a professional stock analyst. Search for current data and return ONLY a JSON object (no backticks, no markdown, no extra text) with this exact structure:\n{"symbol":"TICKER","companyName":"Full Name","currentPrice":"$XXX","recommendation":"BUY","confidenceScore":75,"priceTarget":"$XXX","summary":"2-3 sentence analysis","bullishFactors":["factor1","factor2","factor3"],"bearishFactors":["factor1","factor2"],"analystRating":"Buy/Hold/Sell","socialSentiment":"POSITIVE","technicalSignal":"UP","fundamentalScore":70,"riskLevel":"MEDIUM","sources":["source1","source2"]}\nRecommendation must be exactly BUY, SELL, or HOLD. socialSentiment must be POSITIVE, NEUTRAL, or NEGATIVE. technicalSignal must be UP, DOWN, or NEUTRAL. riskLevel must be LOW, MEDIUM, or HIGH.';
+
+/* ══════════════════════════════════════════════════
+   MARKET DATA WORKER — נתונים חיים בחינם
+   ⚠ החלף את הכתובת אחרי יצירת ה-Worker שלך!
+══════════════════════════════════════════════════ */
+var DATA_WORKER_URL='https://stockai-data.barakaflalo4780.workers.dev';
+
+async function workerFetch(params){
+  var res=await fetch(DATA_WORKER_URL+'/?'+params+'&t='+Date.now());
+  if(!res.ok)throw new Error('Data worker HTTP '+res.status);
+  var data=await res.json();
+  if(!data.ok)throw new Error(data.error||'Worker error');
+  return data;
+}
+async function fetchLiveQuote(symbol){return await workerFetch('action=quote&symbol='+encodeURIComponent(symbol));}
+async function fetchLiveChart(symbol,range){return await workerFetch('action=chart&symbol='+encodeURIComponent(symbol)+'&range='+range);}
+async function fetchLiveTicker(symbols){return await workerFetch('action=ticker&symbols='+encodeURIComponent(symbols.join(',')));}
+async function fetchLiveForex(){return await workerFetch('action=forex');}
+async function fetchLiveCrypto(){return await workerFetch('action=crypto');}
+
+/* ══════════════════════════════════════════════════
+   THEME
+══════════════════════════════════════════════════ */
+var isDark=localStorage.getItem('stockai_theme')!=='light';
+function applyTheme(){
+  var body=document.getElementById('appBody');
+  if(isDark){body.classList.remove('light');document.getElementById('themeBtn').textContent='🌙';}
+  else{body.classList.add('light');document.getElementById('themeBtn').textContent='☀️';}
+}
+function toggleTheme(){isDark=!isDark;localStorage.setItem('stockai_theme',isDark?'dark':'light');applyTheme();}
+
+/* ══════════════════════════════════════════════════
+   AI SETUP — multilingual content
+══════════════════════════════════════════════════ */
+var SETUP_CONTENT={
+  en:{
+    intro:'<strong>🔐 Your API key stays on your device only.</strong><br>Saved in your browser\'s local storage — never sent to any server except the AI provider you choose.',
+    providers:[
+      {id:'claude',icon:'🤖',name:'Claude (Anthropic)',desc:'Most accurate · Built-in web search for real-time data',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'openai',icon:'💬',name:'ChatGPT (OpenAI)',desc:'GPT-4o Mini / GPT-4o · Great reasoning',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'gemini',icon:'✨',name:'Gemini (Google)',desc:'Gemini 1.5 Flash · Free tier — no credit card needed',badge:'Free tier',badgeClass:'badge-free'},
+      {id:'device',icon:'📱',name:'On-Device AI',desc:'AI installed on your computer — Ollama or LM Studio',badge:'Local',badgeClass:'badge-device'},
+      {id:'custom',icon:'⚙️',name:'Custom Endpoint',desc:'Any OpenAI-compatible API URL',badge:'Custom',badgeClass:'badge-device'}
+    ],
+    areas:{
+      claude:{label:'Anthropic API Key',ph:'sk-ant-api03-...',steps:['Go to <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> and sign up','Add a payment method (pay-per-use, ~$0.01–0.03 per analysis)','Click <strong>API Keys</strong> in the left sidebar','Click <strong>Create Key</strong> → copy the key and paste above']},
+      openai:{label:'OpenAI API Key',ph:'sk-proj-...',steps:['Go to <a href="https://platform.openai.com" target="_blank">platform.openai.com</a> and sign in','Click your profile icon → <strong>API Keys</strong>','Click <strong>+ Create new secret key</strong> → copy immediately (once only!)','Go to <strong>Billing</strong> and add a payment method to activate']},
+      gemini:{label:'Google Gemini API Key',ph:'AIza...',steps:['Go to <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>','Sign in with any <strong>Google account</strong>','Click <strong>Get API Key</strong> → Create API key in new project','Copy the key (starts with AIza...) and paste above'],note:'✅ Free tier: 15 requests/min — no credit card required!'},
+      device:{title:'📱 On-Device AI (Ollama / LM Studio)',info:'Connects to an AI running locally on your computer. Completely private — no data leaves your machine.',steps:['Install <a href="https://ollama.ai" target="_blank">Ollama</a> or <a href="https://lmstudio.ai" target="_blank">LM Studio</a>','Download a model: <strong style="color:var(--gold)">ollama pull llama3</strong> in Terminal','Make sure the server is running before analyzing'],urlLabel:'Local API URL',urlHint:'Ollama: port 11434 · LM Studio: port 1234'},
+      custom:{label1:'API Endpoint URL',ph1:'https://your-api.com/v1/chat/completions',label2:'API Key (optional)',ph2:'Your API key...',hint:'Must be OpenAI-compatible (chat/completions format).'}
+    },
+    saveBtn:'✓ Save & Connect'
+  },
+  he:{
+    intro:'<strong>🔐 המפתח שלך נשמר על המכשיר שלך בלבד.</strong><br>נשמר ב-localStorage של הדפדפן — לא נשלח לשום שרת חוץ מספק ה-AI שתבחר.',
+    providers:[
+      {id:'claude',icon:'🤖',name:'Claude (Anthropic)',desc:'הכי מדויק · חיפוש אינטרנט בזמן אמת מובנה',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'openai',icon:'💬',name:'ChatGPT (OpenAI)',desc:'GPT-4o Mini / GPT-4o · יכולות הסקה מצוינות',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'gemini',icon:'✨',name:'Gemini (Google)',desc:'Gemini 1.5 Flash · גרסה חינמית — ללא כרטיס אשראי',badge:'חינמי',badgeClass:'badge-free'},
+      {id:'device',icon:'📱',name:'AI במכשיר',desc:'AI מותקן על המחשב שלך — Ollama או LM Studio',badge:'מקומי',badgeClass:'badge-device'},
+      {id:'custom',icon:'⚙️',name:'כתובת מותאמת',desc:'כל URL תואם OpenAI',badge:'מותאם',badgeClass:'badge-device'}
+    ],
+    areas:{
+      claude:{label:'Anthropic API Key',ph:'sk-ant-api03-...',steps:['פתח <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> וצור חשבון','הוסף אמצעי תשלום (תשלום לפי שימוש, ~$0.01–0.03 לניתוח)','לחץ <strong>API Keys</strong> בסרגל הצד השמאלי','לחץ <strong>Create Key</strong> → העתק את המפתח והדבק למעלה']},
+      openai:{label:'OpenAI API Key',ph:'sk-proj-...',steps:['לך ל-<a href="https://platform.openai.com" target="_blank">platform.openai.com</a> והתחבר','לחץ על תמונת הפרופיל → <strong>API Keys</strong>','לחץ <strong>+ Create new secret key</strong> → העתק מיד (מוצג פעם אחת!)','לך ל-<strong>Billing</strong> והוסף אמצעי תשלום להפעלה']},
+      gemini:{label:'Google Gemini API Key',ph:'AIza...',steps:['לך ל-<a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>','התחבר עם כל <strong>חשבון Google</strong>','לחץ <strong>Get API Key</strong> → צור API key בפרויקט חדש','העתק את המפתח (מתחיל ב-AIza...) והדבק למעלה'],note:'✅ גרסה חינמית: 15 בקשות/דקה — לא נדרש כרטיס אשראי!'},
+      device:{title:'📱 AI במכשיר (Ollama / LM Studio)',info:'מתחבר ל-AI שרץ מקומית על המחשב שלך. פרטי לחלוטין — שום נתון לא עוזב את המכשיר.',steps:['התקן <a href="https://ollama.ai" target="_blank">Ollama</a> או <a href="https://lmstudio.ai" target="_blank">LM Studio</a>','הורד מודל: <strong style="color:var(--gold)">ollama pull llama3</strong> ב-Terminal','ודא שהשרת פועל לפני הניתוח'],urlLabel:'כתובת API מקומית',urlHint:'Ollama: פורט 11434 · LM Studio: פורט 1234'},
+      custom:{label1:'כתובת API',ph1:'https://your-api.com/v1/chat/completions',label2:'מפתח API (אופציונלי)',ph2:'המפתח שלך...',hint:'חייב להיות תואם OpenAI (פורמט chat/completions).'}
+    },
+    saveBtn:'✓ שמור וחבר'
+  },
+  ru:{
+    intro:'<strong>🔐 Ваш API-ключ хранится только на вашем устройстве.</strong><br>Сохраняется в localStorage браузера — никогда не отправляется на сервер, кроме выбранного вами провайдера ИИ.',
+    providers:[
+      {id:'claude',icon:'🤖',name:'Claude (Anthropic)',desc:'Самый точный · Встроенный поиск в интернете в реальном времени',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'openai',icon:'💬',name:'ChatGPT (OpenAI)',desc:'GPT-4o Mini / GPT-4o · Отличное мышление',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'gemini',icon:'✨',name:'Gemini (Google)',desc:'Gemini 1.5 Flash · Бесплатный тариф — карта не нужна',badge:'Бесплатно',badgeClass:'badge-free'},
+      {id:'device',icon:'📱',name:'ИИ на устройстве',desc:'ИИ на вашем компьютере — Ollama или LM Studio',badge:'Локально',badgeClass:'badge-device'},
+      {id:'custom',icon:'⚙️',name:'Свой эндпоинт',desc:'Любой OpenAI-совместимый URL',badge:'Custom',badgeClass:'badge-device'}
+    ],
+    areas:{
+      claude:{label:'Ключ Anthropic API',ph:'sk-ant-api03-...',steps:['Откройте <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> и создайте аккаунт','Добавьте способ оплаты (оплата по использованию, ~$0.01–0.03 за анализ)','В левой панели нажмите <strong>API Keys</strong>','Нажмите <strong>Create Key</strong> → скопируйте ключ и вставьте выше']},
+      openai:{label:'Ключ OpenAI API',ph:'sk-proj-...',steps:['Зайдите на <a href="https://platform.openai.com" target="_blank">platform.openai.com</a>','Нажмите на иконку профиля → <strong>API Keys</strong>','Нажмите <strong>+ Create new secret key</strong> → скопируйте сразу (показывается один раз!)','Перейдите в <strong>Billing</strong> и добавьте способ оплаты']},
+      gemini:{label:'Ключ Google Gemini API',ph:'AIza...',steps:['Зайдите на <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>','Войдите с любым аккаунтом <strong>Google</strong>','Нажмите <strong>Get API Key</strong> → Create API key in new project','Скопируйте ключ (начинается с AIza...) и вставьте выше'],note:'✅ Бесплатный тариф: 15 запросов/мин — карта не нужна!'},
+      device:{title:'📱 ИИ на устройстве (Ollama / LM Studio)',info:'Подключается к ИИ, работающему локально на вашем компьютере. Полная приватность — данные не покидают устройство.',steps:['Установите <a href="https://ollama.ai" target="_blank">Ollama</a> или <a href="https://lmstudio.ai" target="_blank">LM Studio</a>','Скачайте модель: <strong style="color:var(--gold)">ollama pull llama3</strong> в терминале','Убедитесь, что сервер запущен перед анализом'],urlLabel:'Локальный URL API',urlHint:'Ollama: порт 11434 · LM Studio: порт 1234'},
+      custom:{label1:'URL эндпоинта API',ph1:'https://your-api.com/v1/chat/completions',label2:'API ключ (необязательно)',ph2:'Ваш API ключ...',hint:'Должен быть OpenAI-совместимым (формат chat/completions).'}
+    },
+    saveBtn:'✓ Сохранить и подключить'
+  },
+  es:{
+    intro:'<strong>🔐 Tu clave API se queda solo en tu dispositivo.</strong><br>Guardada en el localStorage del navegador — nunca se envía a ningún servidor excepto al proveedor de IA que elijas.',
+    providers:[
+      {id:'claude',icon:'🤖',name:'Claude (Anthropic)',desc:'Más preciso · Búsqueda web en tiempo real integrada',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'openai',icon:'💬',name:'ChatGPT (OpenAI)',desc:'GPT-4o Mini / GPT-4o · Gran razonamiento',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'gemini',icon:'✨',name:'Gemini (Google)',desc:'Gemini 1.5 Flash · Nivel gratuito — sin tarjeta de crédito',badge:'Gratis',badgeClass:'badge-free'},
+      {id:'device',icon:'📱',name:'IA en Dispositivo',desc:'IA instalada en tu computadora — Ollama o LM Studio',badge:'Local',badgeClass:'badge-device'},
+      {id:'custom',icon:'⚙️',name:'Endpoint Personalizado',desc:'Cualquier URL compatible con OpenAI',badge:'Custom',badgeClass:'badge-device'}
+    ],
+    areas:{
+      claude:{label:'Clave Anthropic API',ph:'sk-ant-api03-...',steps:['Ve a <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> y crea una cuenta','Agrega un método de pago (pago por uso, ~$0.01–0.03 por análisis)','En el panel izquierdo, haz clic en <strong>API Keys</strong>','Haz clic en <strong>Create Key</strong> → copia la clave y pégala arriba']},
+      openai:{label:'Clave OpenAI API',ph:'sk-proj-...',steps:['Ve a <a href="https://platform.openai.com" target="_blank">platform.openai.com</a> e inicia sesión','Clic en tu icono de perfil → <strong>API Keys</strong>','Clic en <strong>+ Create new secret key</strong> → cópiala inmediatamente (solo se muestra una vez)','Ve a <strong>Billing</strong> y agrega un método de pago']},
+      gemini:{label:'Clave Google Gemini API',ph:'AIza...',steps:['Ve a <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>','Inicia sesión con cualquier cuenta <strong>Google</strong>','Clic en <strong>Get API Key</strong> → Crear API key en nuevo proyecto','Copia la clave (empieza con AIza...) y pégala arriba'],note:'✅ Nivel gratuito: 15 solicitudes/min — ¡no se requiere tarjeta de crédito!'},
+      device:{title:'📱 IA en Dispositivo (Ollama / LM Studio)',info:'Se conecta a una IA que corre localmente en tu computadora. Completamente privado — ningún dato sale de tu máquina.',steps:['Instala <a href="https://ollama.ai" target="_blank">Ollama</a> o <a href="https://lmstudio.ai" target="_blank">LM Studio</a>','Descarga un modelo: <strong style="color:var(--gold)">ollama pull llama3</strong> en Terminal','Asegúrate de que el servidor esté corriendo antes de analizar'],urlLabel:'URL API Local',urlHint:'Ollama: puerto 11434 · LM Studio: puerto 1234'},
+      custom:{label1:'URL del Endpoint API',ph1:'https://your-api.com/v1/chat/completions',label2:'Clave API (opcional)',ph2:'Tu clave API...',hint:'Debe ser compatible con OpenAI (formato chat/completions).'}
+    },
+    saveBtn:'✓ Guardar y Conectar'
+  },
+  ar:{
+    intro:'<strong>🔐 مفتاح API الخاص بك يبقى على جهازك فقط.</strong><br>محفوظ في localStorage المتصفح — لا يُرسل إلى أي خادم إلا مزود الذكاء الاصطناعي الذي تختاره.',
+    providers:[
+      {id:'claude',icon:'🤖',name:'Claude (Anthropic)',desc:'الأكثر دقة · بحث ويب مدمج في الوقت الفعلي',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'openai',icon:'💬',name:'ChatGPT (OpenAI)',desc:'GPT-4o Mini / GPT-4o · استدلال ممتاز',badge:'API Key',badgeClass:'badge-paid'},
+      {id:'gemini',icon:'✨',name:'Gemini (Google)',desc:'Gemini 1.5 Flash · نسخة مجانية — بدون بطاقة ائتمان',badge:'مجاني',badgeClass:'badge-free'},
+      {id:'device',icon:'📱',name:'AI على الجهاز',desc:'ذكاء اصطناعي مثبت على جهازك — Ollama أو LM Studio',badge:'محلي',badgeClass:'badge-device'},
+      {id:'custom',icon:'⚙️',name:'نقطة نهاية مخصصة',desc:'أي URL متوافق مع OpenAI',badge:'مخصص',badgeClass:'badge-device'}
+    ],
+    areas:{
+      claude:{label:'مفتاح Anthropic API',ph:'sk-ant-api03-...',steps:['افتح <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> وأنشئ حساباً','أضف وسيلة دفع (الدفع حسب الاستخدام، ~$0.01–0.03 لكل تحليل)','في الشريط الجانبي الأيسر، انقر <strong>API Keys</strong>','انقر <strong>Create Key</strong> ← انسخ المفتاح والصقه أعلاه']},
+      openai:{label:'مفتاح OpenAI API',ph:'sk-proj-...',steps:['اذهب إلى <a href="https://platform.openai.com" target="_blank">platform.openai.com</a> وسجّل الدخول','انقر على صورة الملف الشخصي ← <strong>API Keys</strong>','انقر <strong>+ Create new secret key</strong> ← انسخ فوراً (يظهر مرة واحدة فقط!)','اذهب إلى <strong>Billing</strong> وأضف وسيلة دفع']},
+      gemini:{label:'مفتاح Google Gemini API',ph:'AIza...',steps:['اذهب إلى <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>','سجّل الدخول بأي حساب <strong>Google</strong>','انقر <strong>Get API Key</strong> ← أنشئ مفتاح API في مشروع جديد','انسخ المفتاح (يبدأ بـ AIza...) والصقه أعلاه'],note:'✅ النسخة المجانية: 15 طلب/دقيقة — لا بطاقة ائتمان مطلوبة!'},
+      device:{title:'📱 AI على الجهاز (Ollama / LM Studio)',info:'يتصل بذكاء اصطناعي يعمل محلياً على جهاز الكمبيوتر. خصوصية تامة — لا تغادر أي بيانات جهازك.',steps:['ثبّت <a href="https://ollama.ai" target="_blank">Ollama</a> أو <a href="https://lmstudio.ai" target="_blank">LM Studio</a>','نزّل نموذجاً: <strong style="color:var(--gold)">ollama pull llama3</strong> في Terminal','تأكد من تشغيل الخادم قبل التحليل'],urlLabel:'عنوان API المحلي',urlHint:'Ollama: المنفذ 11434 · LM Studio: المنفذ 1234'},
+      custom:{label1:'عنوان URL لنقطة النهاية',ph1:'https://your-api.com/v1/chat/completions',label2:'مفتاح API (اختياري)',ph2:'مفتاحك...',hint:'يجب أن يكون متوافقاً مع OpenAI (تنسيق chat/completions).'}
+    },
+    saveBtn:'✓ حفظ وتوصيل'
+  }
+};
+
+function renderSetup(){
+  var lang=SETUP_CONTENT[curLang]?curLang:'en';
+  var s=SETUP_CONTENT[lang];
+  var cfg=loadAIConfig();
+  var savedVals={
+    claude:cfg.claudeKey||'',openai:cfg.openaiKey||'',
+    gemini:cfg.geminiKey||'',device:cfg.deviceUrl||'http://localhost:11434/v1',
+    customUrl:cfg.customUrl||'',customKey:cfg.customKey||''
+  };
+  var html='<div class="setup-intro">'+s.intro+'</div>';
+  html+='<div class="ai-options">';
+  s.providers.forEach(function(p){
+    html+='<div class="ai-option'+(selectedAI===p.id?' selected':'')+'" id="opt-'+p.id+'" onclick="selectAI(\''+p.id+'\')">'
+      +'<div class="ai-option-icon">'+p.icon+'</div>'
+      +'<div class="ai-option-info"><div class="ai-option-name">'+p.name+'</div><div class="ai-option-desc">'+p.desc+'</div></div>'
+      +'<span class="ai-option-badge '+p.badgeClass+'">'+p.badge+'</span>'
+      +'</div>';
+  });
+  html+='</div>';
+  // Key areas
+  ['claude','openai','gemini'].forEach(function(id){
+    var a=s.areas[id];
+    var inputHtml;
+    if(id==='gemini'){
+      inputHtml='<textarea class="key-input" id="key-gemini" placeholder="'+a.ph+'" rows="3" style="resize:vertical;min-height:60px;font-size:11px;line-height:1.6;">'+escHtml(savedVals[id])+'</textarea>'
+        +'<div class="key-hint" style="margin-top:4px;color:var(--gold-dim);">'+(MULTIKEY_T[curLang]||MULTIKEY_T.en)+'</div>';
+    }else{
+      inputHtml='<input type="password" class="key-input" id="key-'+id+'" placeholder="'+a.ph+'" value="'+escHtml(savedVals[id])+'">';
+    }
+    html+='<div class="key-area'+(selectedAI===id?' visible':'')+'" id="area-'+id+'">'
+      +'<div class="key-label">'+a.label+'</div>'
+      +inputHtml
+      +'<div class="key-hint"><div class="key-hint-steps">';
+    a.steps.forEach(function(step,n){html+='<div class="key-step"><span class="key-step-num">'+(n+1)+'</span><span>'+step+'</span></div>';});
+    html+='</div>';
+    if(a.note)html+='<div class="guide-note-inline" style="margin-top:10px;">'+a.note+'</div>';
+    html+='</div></div>';
+  });
+  // Device area
+  var da=s.areas.device;
+  html+='<div class="key-area'+(selectedAI==='device'?' visible':'')+'" id="area-device">'
+    +'<div class="device-ai-info">'
+    +'<strong style="color:var(--gold)">'+da.title+'</strong><br><br>'+da.info
+    +'<div class="key-hint-steps" style="margin-top:12px;">';
+  da.steps.forEach(function(step,n){html+='<div class="key-step"><span class="key-step-num">'+(n+1)+'</span><span>'+step+'</span></div>';});
+  html+='</div><div style="margin-top:14px;">'
+    +'<div class="key-label">'+da.urlLabel+'</div>'
+    +'<input type="text" class="key-input" id="key-device" value="'+escHtml(savedVals.device)+'">'
+    +'<div class="key-hint" style="margin-top:6px;">'+da.urlHint+'</div>'
+    +'</div></div></div>';
+  // Custom area
+  var ca=s.areas.custom;
+  html+='<div class="key-area'+(selectedAI==='custom'?' visible':'')+'" id="area-custom">'
+    +'<div class="key-label">'+ca.label1+'</div>'
+    +'<input type="text" class="key-input" id="key-custom-url" placeholder="'+ca.ph1+'" value="'+escHtml(savedVals.customUrl)+'" style="margin-bottom:10px;">'
+    +'<div class="key-label">'+ca.label2+'</div>'
+    +'<input type="password" class="key-input" id="key-custom" placeholder="'+ca.ph2+'" value="'+escHtml(savedVals.customKey)+'">'
+    +'<div class="key-hint" style="margin-top:6px;">'+ca.hint+'</div>'
+    +'</div>';
+  html+='<button class="btn-setup-save" onclick="saveAISetup()">'+s.saveBtn+'</button>';
+  html+='<button class="btn-test-ai" id="btnTestAI" onclick="testAIConnection()">'+(TEST_T[curLang]||TEST_T.en).test+'</button>';
+  document.getElementById('setupModalBody').innerHTML=html;
+}
+
+/* ── TEST AI CONNECTION ── */
+var MULTIKEY_T={
+  he:'💡 ניתן להזין כמה מפתחות — אחד בכל שורה. כשנגמרת מכסה של מפתח, האפליקציה עוברת אוטומטית לבא!',
+  en:'💡 You can enter multiple keys — one per line. When a key hits its quota, the app rotates to the next automatically!',
+  ru:'💡 Можно ввести несколько ключей — по одному в строке. Когда квота исчерпана, приложение автоматически переключается!',
+  es:'💡 Puedes ingresar varias claves — una por línea. ¡Cuando se agota la cuota, la app rota automáticamente!',
+  ar:'💡 يمكنك إدخال عدة مفاتيح — واحد في كل سطر. عند نفاد الحصة، ينتقل التطبيق تلقائياً للتالي!'
+};
+var TEST_T={
+  he:{test:'🔌 בדוק חיבור',testing:'בודק...',ok:'✓ החיבור תקין! ה-AI עונה',fail:'✗ החיבור נכשל: ',noSel:'בחר ספק AI קודם'},
+  en:{test:'🔌 Test Connection',testing:'Testing...',ok:'✓ Connected! AI responds',fail:'✗ Connection failed: ',noSel:'Select an AI provider first'},
+  ru:{test:'🔌 Проверить соединение',testing:'Проверка...',ok:'✓ Подключено! ИИ отвечает',fail:'✗ Ошибка: ',noSel:'Сначала выберите провайдера'},
+  es:{test:'🔌 Probar conexión',testing:'Probando...',ok:'✓ ¡Conectado! La IA responde',fail:'✗ Falló: ',noSel:'Selecciona un proveedor primero'},
+  ar:{test:'🔌 اختبار الاتصال',testing:'جارٍ الاختبار...',ok:'✓ متصل! الذكاء الاصطناعي يستجيب',fail:'✗ فشل: ',noSel:'اختر مزوداً أولاً'}
+};
+async function testAIConnection(){
+  var t=TEST_T[curLang]||TEST_T.en;
+  var btn=document.getElementById('btnTestAI');
+  if(!selectedAI){btn.textContent=t.noSel;btn.className='btn-test-ai fail';setTimeout(function(){btn.textContent=t.test;btn.className='btn-test-ai';},2500);return;}
+  // Temporarily save current form values so the test uses them
+  btn.textContent=t.testing;btn.className='btn-test-ai testing';btn.disabled=true;
+  try{
+    var key='',testPrompt='Reply with exactly: OK';
+    if(selectedAI==='claude'){
+      key=document.getElementById('key-claude').value.trim();
+      if(!key)throw new Error('No key');
+      var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
+      if(!r.ok){var e1=await r.json().catch(function(){return{};});throw new Error((e1.error&&e1.error.message)||'HTTP '+r.status);}
+    }else if(selectedAI==='openai'){
+      key=document.getElementById('key-openai').value.trim();
+      if(!key)throw new Error('No key');
+      var r2=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
+      if(!r2.ok){var e2=await r2.json().catch(function(){return{};});throw new Error((e2.error&&e2.error.message)||'HTTP '+r2.status);}
+    }else if(selectedAI==='gemini'){
+      var rawKeys=document.getElementById('key-gemini').value.trim();
+      if(!rawKeys)throw new Error('No key');
+      var keyList=rawKeys.split(/[\n,;]+/).map(function(s){return s.trim();}).filter(Boolean);
+      await geminiCallMulti(keyList,testPrompt,10);
+    }else if(selectedAI==='device'){
+      var u=document.getElementById('key-device').value.trim()||'http://localhost:11434/v1';
+      var r4=await fetch(u.replace(/\/+$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama3',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
+      if(!r4.ok)throw new Error('HTTP '+r4.status);
+    }else if(selectedAI==='custom'){
+      var cu=document.getElementById('key-custom-url').value.trim();
+      var ck=document.getElementById('key-custom').value.trim();
+      if(!cu)throw new Error('No URL');
+      var h={'Content-Type':'application/json'};if(ck)h['Authorization']='Bearer '+ck;
+      var r5=await fetch(cu,{method:'POST',headers:h,body:JSON.stringify({model:'gpt-4o-mini',max_tokens:10,messages:[{role:'user',content:testPrompt}]})});
+      if(!r5.ok)throw new Error('HTTP '+r5.status);
+    }
+    btn.textContent=t.ok;btn.className='btn-test-ai ok';
+  }catch(err){
+    var msg=String(err.message||err);
+    if(msg.length>40)msg=msg.slice(0,40)+'...';
+    btn.textContent=t.fail+msg;btn.className='btn-test-ai fail';
+  }finally{
+    btn.disabled=false;
+    setTimeout(function(){btn.textContent=t.test;btn.className='btn-test-ai';},5000);
+  }
+}
+var selectedAI=null;
+function loadAIConfig(){
+  return{
+    provider:localStorage.getItem('stockai_ai_provider'),
+    claudeKey:localStorage.getItem('stockai_key_claude'),
+    openaiKey:localStorage.getItem('stockai_key_openai'),
+    geminiKey:localStorage.getItem('stockai_key_gemini'),
+    deviceUrl:localStorage.getItem('stockai_device_url')||'http://localhost:11434/v1',
+    customUrl:localStorage.getItem('stockai_custom_url'),
+    customKey:localStorage.getItem('stockai_key_custom')
+  };
+}
+function updateAIStatus(){
+  var cfg=loadAIConfig();
+  var dot=document.getElementById('aiDot');
+  var nameEl=document.getElementById('aiStatusName');
+  var names={claude:'Claude',openai:'ChatGPT',gemini:'Gemini',device:'On-Device',custom:'Custom'};
+  if(cfg.provider){dot.classList.add('connected');nameEl.textContent=names[cfg.provider]||cfg.provider;}
+  else{dot.classList.remove('connected');nameEl.textContent=T('aiNotConnected');}
+}
+function openSetup(){
+  var cfg=loadAIConfig();
+  selectedAI=cfg.provider||null;
+  renderSetup();
+  document.getElementById('setupOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSetup(){document.getElementById('setupOverlay').classList.remove('open');document.body.style.overflow='';}
+function selectAI(provider){
+  selectedAI=provider;
+  document.querySelectorAll('.ai-option').forEach(function(o){o.classList.remove('selected');});
+  document.querySelectorAll('.key-area').forEach(function(a){a.classList.remove('visible');});
+  var opt=document.getElementById('opt-'+provider);if(opt)opt.classList.add('selected');
+  var area=document.getElementById('area-'+provider);if(area)area.classList.add('visible');
+}
+function saveAISetup(){
+  if(!selectedAI){showToastMsg('Please select an AI provider');return;}
+  localStorage.setItem('stockai_ai_provider',selectedAI);
+  if(selectedAI==='claude'){
+    var k=document.getElementById('key-claude').value.trim();
+    if(!k){showToastMsg('Please enter your Claude API key');return;}
+    localStorage.setItem('stockai_key_claude',k);
+  }else if(selectedAI==='openai'){
+    var k=document.getElementById('key-openai').value.trim();
+    if(!k){showToastMsg('Please enter your OpenAI API key');return;}
+    localStorage.setItem('stockai_key_openai',k);
+  }else if(selectedAI==='gemini'){
+    var k=document.getElementById('key-gemini').value.trim();
+    if(!k){showToastMsg('Please enter your Gemini API key');return;}
+    localStorage.setItem('stockai_key_gemini',k);
+  }else if(selectedAI==='device'){
+    var u=document.getElementById('key-device').value.trim()||'http://localhost:11434/v1';
+    localStorage.setItem('stockai_device_url',u);
+  }else if(selectedAI==='custom'){
+    localStorage.setItem('stockai_custom_url',document.getElementById('key-custom-url').value.trim());
+    localStorage.setItem('stockai_key_custom',document.getElementById('key-custom').value.trim());
+  }
+  updateAIStatus();closeSetup();showToastMsg('✓ AI connected!');
+}
+
+/* ══════════════════════════════════════════════════
+   GUIDE MODAL
+══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   GUIDE — multilingual content
+══════════════════════════════════════════════════ */
+var GUIDE_CONTENT={
+  en:{
+    tabs:['App Guide','Claude','ChatGPT','Gemini','On-Device'],
+    app:{
+      sections:[
+        {title:'What is StockAI?',items:[
+          {icon:'📊',html:'StockAI analyzes stocks from <strong>US & Israeli markets</strong> using AI. It searches the web for current news, analyst ratings, and social sentiment — then gives you a clear BUY / SELL / HOLD recommendation with a confidence score.'}
+        ]},
+        {title:'How to analyze a stock',steps:[
+          'Connect your AI — tap the <strong>⚙ status button</strong> in the header and choose a provider',
+          'Type a <strong>stock symbol</strong> (e.g. AAPL, TSLA, TEVA) or tap a quick-pick button',
+          'Tap <strong>▶ Analyze</strong> — wait 15–30 seconds while the AI searches for data',
+          'Read the full analysis: recommendation, confidence, bull/bear factors, and sources'
+        ]},
+        {title:'Watchlist features',items:[
+          {icon:'⭐',html:'<strong>My Stocks</strong> — Add any symbol. Shows time since last analysis.'},
+          {icon:'🇮🇱',html:'<strong>Israel Top</strong> — Pre-loaded top Israeli stocks (TEVA, CHKP, MNDY, WIX...)'},
+          {icon:'🇺🇸',html:'<strong>US Top</strong> — Pre-loaded top US stocks (AAPL, NVDA, TSLA, META...)'},
+          {icon:'▶▶',html:'<strong>Analyze All</strong> — Analyzes every stock in your list one by one'},
+          {icon:'💾',html:'<strong>Export / Import</strong> — Back up your list and restore it on any device'}
+        ]},
+        {title:'Understanding results',items:[
+          {icon:'🟢',html:'<strong>BUY</strong> — Strong upside signals from fundamentals, sentiment & technicals'},
+          {icon:'🔴',html:'<strong>SELL</strong> — Significant negative signals; risk outweighs potential'},
+          {icon:'🟡',html:'<strong>HOLD</strong> — Mixed signals; not a clear entry or exit point'},
+          {icon:'%',html:'<strong>Confidence Score</strong> — AI certainty. 70%+ = reliable signal.'},
+          {icon:'⏱',html:'<strong>Stale warning</strong> — After 2 hours, a Refresh prompt appears automatically'}
+        ]}
+      ],
+      note:'⚠ StockAI is for research only. Always do your own due diligence before investing.'
+    },
+    claude:{
+      sections:[
+        {title:'Why choose Claude?',items:[
+          {icon:'🌐',html:'Claude is the <strong>recommended provider</strong> — built-in real-time web search finds today\'s news, analyst upgrades, and earnings data.'},
+          {icon:'🎯',html:'Produces the most accurate and detailed analysis of all supported providers.'}
+        ]},
+        {title:'How to get a Claude API Key',steps:[
+          'Open <a href="https://console.anthropic.com" target="_blank"><strong>console.anthropic.com</strong></a> and create an account',
+          'Go to <strong>Billing</strong> → add a credit or debit card (pay only for what you use)',
+          'In the left sidebar, click <strong>API Keys</strong>',
+          'Click <strong>Create Key</strong>, give it a name like "StockAI", and copy it',
+          'Tap <strong>⚙</strong> in StockAI header → select Claude → paste key → Save'
+        ]}
+      ],
+      note:'💡 Cost: ~$0.01–0.03 per analysis. 100 analyses ≈ $1–3 USD.'
+    },
+    openai:{
+      sections:[
+        {title:'About ChatGPT (OpenAI)',items:[
+          {icon:'💬',html:'GPT-4o and GPT-4o Mini are powerful models. <strong>Note:</strong> no real-time web search — uses training data up to early 2024.'}
+        ]},
+        {title:'How to get an OpenAI API Key',steps:[
+          'Go to <a href="https://platform.openai.com" target="_blank"><strong>platform.openai.com</strong></a> and sign in',
+          'Click your profile icon (top right) → <strong>API Keys</strong>',
+          'Click <strong>+ Create new secret key</strong> — copy it immediately (shown only once!)',
+          'Go to <strong>Settings → Billing</strong> and add a payment method',
+          'Tap <strong>⚙</strong> in StockAI → select ChatGPT → paste key → Save'
+        ]}
+      ],
+      note:'💡 GPT-4o Mini (~$0.005/analysis) · GPT-4o (~$0.05/analysis)'
+    },
+    gemini:{
+      sections:[
+        {title:'Gemini — 100% Free to start!',items:[
+          {icon:'✨',html:'Gemini 1.5 Flash has a <strong>free tier — no credit card required</strong>. 15 requests/min and 1M tokens/day. Perfect for personal use.'}
+        ]},
+        {title:'How to get a Gemini API Key (Free)',steps:[
+          'Go to <a href="https://aistudio.google.com" target="_blank"><strong>aistudio.google.com</strong></a>',
+          'Sign in with any <strong>Google / Gmail account</strong>',
+          'Click the blue <strong>"Get API Key"</strong> button',
+          'Click <strong>"Create API key in new project"</strong>',
+          'Copy the key (starts with AIza...) → paste in StockAI → Save'
+        ]}
+      ],
+      note:'✅ Best choice to start for free. No credit card, no billing needed.'
+    },
+    device:{
+      sections:[
+        {title:'On-Device AI — Private & Free',items:[
+          {icon:'🔒',html:'Run AI <strong>completely locally</strong> on your computer. No API costs, no internet needed for the AI, maximum privacy.'},
+          {icon:'⚠️',html:'Requires a powerful computer (8GB+ RAM). Quality depends on the model you install.'}
+        ]},
+        {title:'Option A — Ollama (easiest)',steps:[
+          'Download from <a href="https://ollama.ai" target="_blank"><strong>ollama.ai</strong></a> — Mac, Windows, Linux',
+          'Open Terminal and run: <strong style="color:var(--gold)">ollama pull llama3</strong>',
+          'Ollama runs automatically at <strong>http://localhost:11434</strong>',
+          'In StockAI: select "On-Device AI" — the default URL works automatically'
+        ]},
+        {title:'Option B — LM Studio (visual)',steps:[
+          'Download from <a href="https://lmstudio.ai" target="_blank"><strong>lmstudio.ai</strong></a>',
+          'Search and download a model (e.g. <strong>Mistral 7B</strong> or <strong>Llama 3</strong>)',
+          'Click <strong>Local Server</strong> tab → click <strong>Start Server</strong>',
+          'In StockAI: set URL to <strong>http://localhost:1234/v1</strong>'
+        ]}
+      ],
+      note:'💡 Best models: Llama 3 8B, Mistral 7B, Phi-3 Medium. All free to download.'
+    }
+  },
+  he:{
+    tabs:['מדריך האפליקציה','Claude','ChatGPT','Gemini','AI במכשיר'],
+    app:{
+      sections:[
+        {title:'מה זה StockAI?',items:[
+          {icon:'📊',html:'StockAI מנתחת מניות מ<strong>בורסות ארה"ב וישראל</strong> בעזרת AI. היא מחפשת חדשות עדכניות, המלצות אנליסטים וסנטימנט חברתי — ומחזירה המלצת קנה / מכור / החזק עם ציון ביטחון.'}
+        ]},
+        {title:'איך לנתח מניה',steps:[
+          'חבר את ה-AI — לחץ על <strong>⚙ כפתור הסטטוס</strong> בכותרת ובחר ספק',
+          'הזן <strong>סימבול מניה</strong> (למשל AAPL, TSLA, TEVA) או לחץ על כפתור מהיר',
+          'לחץ <strong>▶ נתח</strong> — המתן 15–30 שניות בזמן שה-AI מחפש נתונים',
+          'קרא את הניתוח המלא: המלצה, רמת ביטחון, גורמי עלייה/ירידה, מקורות'
+        ]},
+        {title:'פיצ\'רי רשימת המעקב',items:[
+          {icon:'⭐',html:'<strong>המניות שלי</strong> — הוסף כל סימבול. מציג כמה זמן עבר מהניתוח האחרון.'},
+          {icon:'🇮🇱',html:'<strong>מובילות ישראל</strong> — רשימה מוכנה של מניות ישראליות מובילות'},
+          {icon:'🇺🇸',html:'<strong>מובילות ארה"ב</strong> — רשימה מוכנה של מניות אמריקאיות מובילות'},
+          {icon:'▶▶',html:'<strong>נתח הכל</strong> — מנתח כל מניה ברשימה בזו אחר זו'},
+          {icon:'💾',html:'<strong>גיבוי / שחזור</strong> — ייצא ויבא את הרשימה בין מכשירים'}
+        ]},
+        {title:'הבנת התוצאות',items:[
+          {icon:'🟢',html:'<strong>קנה</strong> — אותות עלייה חזקים מפנדמנטלים, סנטימנט וטכניקה'},
+          {icon:'🔴',html:'<strong>מכור</strong> — אותות שליליים משמעותיים; הסיכון עולה על הפוטנציאל'},
+          {icon:'🟡',html:'<strong>החזק</strong> — אותות מעורבים; לא נקודת כניסה או יציאה ברורה'},
+          {icon:'%',html:'<strong>ציון ביטחון</strong> — בטחון ה-AI בהמלצה. 70%+ = אות אמין.'},
+          {icon:'⏱',html:'<strong>אזהרת ישן</strong> — אחרי שעתיים מופיע כפתור "רענן" אוטומטית'}
+        ]}
+      ],
+      note:'⚠ StockAI למחקר בלבד. תמיד בצע בדיקות עצמאיות לפני השקעה.'
+    },
+    claude:{
+      sections:[
+        {title:'למה לבחור Claude?',items:[
+          {icon:'🌐',html:'Claude הוא <strong>הספק המומלץ</strong> — יש לו חיפוש אינטרנט בזמן אמת, מוצא חדשות, שדרוגי אנליסטים ונתוני רווחים עדכניים.'},
+          {icon:'🎯',html:'מייצר את הניתוח המדויק והמפורט ביותר מכל הספקים הנתמכים.'}
+        ]},
+        {title:'איך לקבל Claude API Key',steps:[
+          'פתח <a href="https://console.anthropic.com" target="_blank"><strong>console.anthropic.com</strong></a> וצור חשבון',
+          'לך ל-<strong>Billing</strong> → הוסף כרטיס אשראי (משלם רק על שימוש)',
+          'בסרגל הצד השמאלי, לחץ <strong>API Keys</strong>',
+          'לחץ <strong>Create Key</strong>, תן שם כמו "StockAI", והעתק',
+          'לחץ <strong>⚙</strong> ב-StockAI → בחר Claude → הדבק את המפתח → שמור'
+        ]}
+      ],
+      note:'💡 עלות: ~$0.01–0.03 לניתוח. 100 ניתוחים ≈ $1–3 דולר.'
+    },
+    openai:{
+      sections:[
+        {title:'על ChatGPT (OpenAI)',items:[
+          {icon:'💬',html:'GPT-4o ו-GPT-4o Mini הם מודלים חזקים. <strong>שים לב:</strong> אין חיפוש אינטרנט — משתמש בנתוני אימון עד תחילת 2024.'}
+        ]},
+        {title:'איך לקבל OpenAI API Key',steps:[
+          'לך ל-<a href="https://platform.openai.com" target="_blank"><strong>platform.openai.com</strong></a> והתחבר',
+          'לחץ על תמונת הפרופיל (פינה ימנית עליונה) ← <strong>API Keys</strong>',
+          'לחץ <strong>+ Create new secret key</strong> — העתק מיד (מוצג פעם אחת בלבד!)',
+          'לך ל-<strong>Settings → Billing</strong> והוסף אמצעי תשלום',
+          'לחץ <strong>⚙</strong> ב-StockAI → בחר ChatGPT → הדבק מפתח → שמור'
+        ]}
+      ],
+      note:'💡 GPT-4o Mini (~$0.005/ניתוח) · GPT-4o (~$0.05/ניתוח)'
+    },
+    gemini:{
+      sections:[
+        {title:'Gemini — חינמי לגמרי לתחילת הדרך!',items:[
+          {icon:'✨',html:'ל-Gemini 1.5 Flash יש <strong>גרסה חינמית — ללא כרטיס אשראי</strong>. 15 בקשות/דקה ו-1M טוקן/יום. מושלם לשימוש אישי.'}
+        ]},
+        {title:'איך לקבל Gemini API Key (חינמי)',steps:[
+          'לך ל-<a href="https://aistudio.google.com" target="_blank"><strong>aistudio.google.com</strong></a>',
+          'התחבר עם כל <strong>חשבון Google / Gmail</strong>',
+          'לחץ על הכפתור הכחול <strong>"Get API Key"</strong>',
+          'לחץ <strong>"Create API key in new project"</strong>',
+          'העתק את המפתח (מתחיל ב-AIza...) → הדבק ב-StockAI → שמור'
+        ]}
+      ],
+      note:'✅ הבחירה הטובה ביותר להתחלה חינמית. לא דרוש כרטיס אשראי.'
+    },
+    device:{
+      sections:[
+        {title:'AI במכשיר — פרטיות מלאה וחינמי',items:[
+          {icon:'🔒',html:'הפעל AI <strong>מקומית על המחשב שלך</strong>. ללא עלות API, ללא צורך באינטרנט ל-AI, מקסימום פרטיות.'},
+          {icon:'⚠️',html:'דרוש מחשב חזק (8GB+ RAM). איכות הניתוח תלויה במודל שתתקין.'}
+        ]},
+        {title:'אפשרות א׳ — Ollama (הכי קל)',steps:[
+          'הורד מ-<a href="https://ollama.ai" target="_blank"><strong>ollama.ai</strong></a> — זמין ל-Mac, Windows, Linux',
+          'פתח Terminal והרץ: <strong style="color:var(--gold)">ollama pull llama3</strong>',
+          'Ollama רץ אוטומטית על <strong>http://localhost:11434</strong>',
+          'ב-StockAI: בחר "AI במכשיר" — ה-URL ברירת המחדל עובד אוטומטית'
+        ]},
+        {title:'אפשרות ב׳ — LM Studio (ממשק ויזואלי)',steps:[
+          'הורד מ-<a href="https://lmstudio.ai" target="_blank"><strong>lmstudio.ai</strong></a>',
+          'חפש והורד מודל (לדוגמה <strong>Mistral 7B</strong> או <strong>Llama 3</strong>)',
+          'לחץ על לשונית <strong>Local Server</strong> → לחץ <strong>Start Server</strong>',
+          'ב-StockAI: הגדר URL ל-<strong>http://localhost:1234/v1</strong>'
+        ]}
+      ],
+      note:'💡 מודלים מומלצים: Llama 3 8B, Mistral 7B, Phi-3 Medium. כולם חינמיים.'
+    }
+  },
+  ru:{
+    tabs:['Руководство','Claude','ChatGPT','Gemini','На устройстве'],
+    app:{
+      sections:[
+        {title:'Что такое StockAI?',items:[
+          {icon:'📊',html:'StockAI анализирует акции <strong>рынков США и Израиля</strong> с помощью ИИ. Ищет свежие новости, рейтинги аналитиков и настроения соцсетей — и выдаёт рекомендацию КУПИТЬ / ПРОДАТЬ / ДЕРЖАТЬ с оценкой уверенности.'}
+        ]},
+        {title:'Как анализировать акцию',steps:[
+          'Подключите ИИ — нажмите <strong>⚙ кнопку статуса</strong> в шапке и выберите провайдера',
+          'Введите <strong>тикер акции</strong> (напр. AAPL, TSLA, TEVA) или нажмите быструю кнопку',
+          'Нажмите <strong>▶ Анализ</strong> — подождите 15–30 секунд',
+          'Прочитайте анализ: рекомендацию, уверенность, факторы роста/падения и источники'
+        ]},
+        {title:'Функции списка слежения',items:[
+          {icon:'⭐',html:'<strong>Мои акции</strong> — Добавьте тикер. Показывает время с последнего анализа.'},
+          {icon:'🇮🇱',html:'<strong>Топ Израиль</strong> — Готовый список лучших израильских акций'},
+          {icon:'🇺🇸',html:'<strong>Топ США</strong> — Готовый список лучших американских акций'},
+          {icon:'▶▶',html:'<strong>Анализировать всё</strong> — Анализирует каждую акцию по очереди'},
+          {icon:'💾',html:'<strong>Экспорт / Импорт</strong> — Создайте резервную копию и восстановите на любом устройстве'}
+        ]},
+        {title:'Понимание результатов',items:[
+          {icon:'🟢',html:'<strong>КУПИТЬ</strong> — Сильные сигналы роста по фундаментальным, настроениям и технике'},
+          {icon:'🔴',html:'<strong>ПРОДАТЬ</strong> — Значительные негативные сигналы; риск превышает потенциал'},
+          {icon:'🟡',html:'<strong>ДЕРЖАТЬ</strong> — Смешанные сигналы; не чёткая точка входа или выхода'},
+          {icon:'%',html:'<strong>Уверенность</strong> — Уверенность ИИ в рекомендации. 70%+ = надёжный сигнал.'},
+          {icon:'⏱',html:'<strong>Устаревший анализ</strong> — Через 2 часа появляется кнопка "Обновить"'}
+        ]}
+      ],
+      note:'⚠ StockAI только для исследований. Всегда проводите собственный анализ перед инвестированием.'
+    },
+    claude:{
+      sections:[
+        {title:'Почему Claude?',items:[
+          {icon:'🌐',html:'Claude — <strong>рекомендуемый провайдер</strong> — встроенный поиск в реальном времени находит сегодняшние новости, апгрейды аналитиков и данные о прибыли.'},
+          {icon:'🎯',html:'Выдаёт наиболее точный и детальный анализ среди всех поддерживаемых провайдеров.'}
+        ]},
+        {title:'Как получить Claude API Key',steps:[
+          'Откройте <a href="https://console.anthropic.com" target="_blank"><strong>console.anthropic.com</strong></a> и создайте аккаунт',
+          'Перейдите в <strong>Billing</strong> → добавьте карту (оплата только за использование)',
+          'В левой боковой панели нажмите <strong>API Keys</strong>',
+          'Нажмите <strong>Create Key</strong>, дайте имя "StockAI" и скопируйте',
+          'В StockAI нажмите <strong>⚙</strong> → выберите Claude → вставьте ключ → Сохранить'
+        ]}
+      ],
+      note:'💡 Стоимость: ~$0.01–0.03 за анализ. 100 анализов ≈ $1–3 USD.'
+    },
+    openai:{
+      sections:[
+        {title:'О ChatGPT (OpenAI)',items:[
+          {icon:'💬',html:'GPT-4o и GPT-4o Mini — мощные модели. <strong>Важно:</strong> нет поиска в реальном времени — использует обучающие данные до начала 2024 года.'}
+        ]},
+        {title:'Как получить OpenAI API Key',steps:[
+          'Перейдите на <a href="https://platform.openai.com" target="_blank"><strong>platform.openai.com</strong></a> и войдите',
+          'Нажмите на иконку профиля (вверху справа) → <strong>API Keys</strong>',
+          'Нажмите <strong>+ Create new secret key</strong> — скопируйте сразу (показывается один раз!)',
+          'Перейдите в <strong>Settings → Billing</strong> и добавьте способ оплаты',
+          'В StockAI нажмите <strong>⚙</strong> → ChatGPT → вставьте ключ → Сохранить'
+        ]}
+      ],
+      note:'💡 GPT-4o Mini (~$0.005/анализ) · GPT-4o (~$0.05/анализ)'
+    },
+    gemini:{
+      sections:[
+        {title:'Gemini — 100% бесплатно для начала!',items:[
+          {icon:'✨',html:'Gemini 1.5 Flash имеет <strong>бесплатный тариф — без кредитной карты</strong>. 15 запросов/мин и 1M токенов/день.'}
+        ]},
+        {title:'Как получить Gemini API Key (бесплатно)',steps:[
+          'Перейдите на <a href="https://aistudio.google.com" target="_blank"><strong>aistudio.google.com</strong></a>',
+          'Войдите с любым аккаунтом <strong>Google / Gmail</strong>',
+          'Нажмите синюю кнопку <strong>"Get API Key"</strong>',
+          'Нажмите <strong>"Create API key in new project"</strong>',
+          'Скопируйте ключ (начинается с AIza...) → вставьте в StockAI → Сохранить'
+        ]}
+      ],
+      note:'✅ Лучший выбор для бесплатного старта. Карта не нужна.'
+    },
+    device:{
+      sections:[
+        {title:'ИИ на устройстве — Приватность и бесплатно',items:[
+          {icon:'🔒',html:'Запускайте ИИ <strong>локально на своём компьютере</strong>. Нет расходов на API, не нужен интернет для ИИ, максимальная приватность.'},
+          {icon:'⚠️',html:'Нужен мощный компьютер (8GB+ RAM). Качество зависит от установленной модели.'}
+        ]},
+        {title:'Вариант А — Ollama (проще всего)',steps:[
+          'Скачайте с <a href="https://ollama.ai" target="_blank"><strong>ollama.ai</strong></a> — Mac, Windows, Linux',
+          'Откройте терминал и выполните: <strong style="color:var(--gold)">ollama pull llama3</strong>',
+          'Ollama автоматически запускается на <strong>http://localhost:11434</strong>',
+          'В StockAI выберите "На устройстве" — URL по умолчанию работает автоматически'
+        ]},
+        {title:'Вариант Б — LM Studio (с интерфейсом)',steps:[
+          'Скачайте с <a href="https://lmstudio.ai" target="_blank"><strong>lmstudio.ai</strong></a>',
+          'Найдите и скачайте модель (напр. <strong>Mistral 7B</strong> или <strong>Llama 3</strong>)',
+          'Нажмите вкладку <strong>Local Server</strong> → <strong>Start Server</strong>',
+          'В StockAI установите URL: <strong>http://localhost:1234/v1</strong>'
+        ]}
+      ],
+      note:'💡 Лучшие модели: Llama 3 8B, Mistral 7B, Phi-3 Medium. Все бесплатные.'
+    }
+  },
+  es:{
+    tabs:['Guía de la App','Claude','ChatGPT','Gemini','En Dispositivo'],
+    app:{
+      sections:[
+        {title:'¿Qué es StockAI?',items:[
+          {icon:'📊',html:'StockAI analiza acciones de los <strong>mercados de EEUU e Israel</strong> con IA. Busca noticias actuales, calificaciones de analistas y sentimiento social — y da una recomendación COMPRAR / VENDER / MANTENER con puntuación de confianza.'}
+        ]},
+        {title:'Cómo analizar una acción',steps:[
+          'Conecta tu IA — toca el <strong>botón ⚙ de estado</strong> en el encabezado y elige un proveedor',
+          'Escribe un <strong>símbolo de acción</strong> (ej. AAPL, TSLA, TEVA) o toca un botón rápido',
+          'Toca <strong>▶ Analizar</strong> — espera 15–30 segundos',
+          'Lee el análisis: recomendación, confianza, factores alcistas/bajistas y fuentes'
+        ]},
+        {title:'Funciones de la lista de seguimiento',items:[
+          {icon:'⭐',html:'<strong>Mis Acciones</strong> — Agrega cualquier símbolo. Muestra tiempo desde el último análisis.'},
+          {icon:'🇮🇱',html:'<strong>Top Israel</strong> — Lista predefinida de principales acciones israelíes'},
+          {icon:'🇺🇸',html:'<strong>Top EEUU</strong> — Lista predefinida de principales acciones americanas'},
+          {icon:'▶▶',html:'<strong>Analizar Todo</strong> — Analiza cada acción de tu lista una por una'},
+          {icon:'💾',html:'<strong>Exportar / Importar</strong> — Respalda tu lista y restáurala en cualquier dispositivo'}
+        ]},
+        {title:'Entendiendo los resultados',items:[
+          {icon:'🟢',html:'<strong>COMPRAR</strong> — Señales alcistas fuertes de fundamentales, sentimiento y técnica'},
+          {icon:'🔴',html:'<strong>VENDER</strong> — Señales negativas significativas; el riesgo supera el potencial'},
+          {icon:'🟡',html:'<strong>MANTENER</strong> — Señales mixtas; no es un punto claro de entrada o salida'},
+          {icon:'%',html:'<strong>Confianza</strong> — Certeza de la IA. 70%+ = señal confiable.'},
+          {icon:'⏱',html:'<strong>Análisis obsoleto</strong> — Después de 2 horas aparece un botón "Actualizar"'}
+        ]}
+      ],
+      note:'⚠ StockAI es solo para investigación. Siempre haz tu propio análisis antes de invertir.'
+    },
+    claude:{
+      sections:[
+        {title:'¿Por qué elegir Claude?',items:[
+          {icon:'🌐',html:'Claude es el <strong>proveedor recomendado</strong> — búsqueda web en tiempo real, encuentra noticias actuales, upgrades de analistas y datos de ganancias.'},
+          {icon:'🎯',html:'Produce el análisis más preciso y detallado de todos los proveedores soportados.'}
+        ]},
+        {title:'Cómo obtener una Claude API Key',steps:[
+          'Abre <a href="https://console.anthropic.com" target="_blank"><strong>console.anthropic.com</strong></a> y crea una cuenta',
+          'Ve a <strong>Billing</strong> → agrega una tarjeta (pagas solo por lo que usas)',
+          'En el panel izquierdo, haz clic en <strong>API Keys</strong>',
+          'Haz clic en <strong>Create Key</strong>, ponle nombre "StockAI" y cópiala',
+          'En StockAI toca <strong>⚙</strong> → selecciona Claude → pega la clave → Guardar'
+        ]}
+      ],
+      note:'💡 Costo: ~$0.01–0.03 por análisis. 100 análisis ≈ $1–3 USD.'
+    },
+    openai:{
+      sections:[
+        {title:'Sobre ChatGPT (OpenAI)',items:[
+          {icon:'💬',html:'GPT-4o y GPT-4o Mini son modelos potentes. <strong>Nota:</strong> sin búsqueda web en tiempo real — usa datos de entrenamiento hasta principios de 2024.'}
+        ]},
+        {title:'Cómo obtener una OpenAI API Key',steps:[
+          'Ve a <a href="https://platform.openai.com" target="_blank"><strong>platform.openai.com</strong></a> e inicia sesión',
+          'Clic en tu icono de perfil (arriba derecha) → <strong>API Keys</strong>',
+          'Clic en <strong>+ Create new secret key</strong> — cópiala inmediatamente (se muestra solo una vez)',
+          'Ve a <strong>Settings → Billing</strong> y agrega un método de pago',
+          'En StockAI toca <strong>⚙</strong> → ChatGPT → pega clave → Guardar'
+        ]}
+      ],
+      note:'💡 GPT-4o Mini (~$0.005/análisis) · GPT-4o (~$0.05/análisis)'
+    },
+    gemini:{
+      sections:[
+        {title:'Gemini — ¡100% Gratis para empezar!',items:[
+          {icon:'✨',html:'Gemini 1.5 Flash tiene un <strong>nivel gratuito — sin tarjeta de crédito</strong>. 15 solicitudes/min y 1M tokens/día.'}
+        ]},
+        {title:'Cómo obtener una Gemini API Key (Gratis)',steps:[
+          'Ve a <a href="https://aistudio.google.com" target="_blank"><strong>aistudio.google.com</strong></a>',
+          'Inicia sesión con cualquier cuenta <strong>Google / Gmail</strong>',
+          'Clic en el botón azul <strong>"Get API Key"</strong>',
+          'Clic en <strong>"Create API key in new project"</strong>',
+          'Copia la clave (empieza con AIza...) → pégala en StockAI → Guardar'
+        ]}
+      ],
+      note:'✅ Mejor opción para empezar gratis. Sin tarjeta de crédito.'
+    },
+    device:{
+      sections:[
+        {title:'IA en Dispositivo — Privacidad y Gratis',items:[
+          {icon:'🔒',html:'Ejecuta IA <strong>completamente local</strong> en tu computadora. Sin costos de API, sin internet para la IA, máxima privacidad.'},
+          {icon:'⚠️',html:'Requiere una computadora potente (8GB+ RAM). La calidad depende del modelo instalado.'}
+        ]},
+        {title:'Opción A — Ollama (más fácil)',steps:[
+          'Descarga desde <a href="https://ollama.ai" target="_blank"><strong>ollama.ai</strong></a> — Mac, Windows, Linux',
+          'Abre Terminal y ejecuta: <strong style="color:var(--gold)">ollama pull llama3</strong>',
+          'Ollama corre automáticamente en <strong>http://localhost:11434</strong>',
+          'En StockAI selecciona "En Dispositivo" — la URL predeterminada funciona automáticamente'
+        ]},
+        {title:'Opción B — LM Studio (interfaz visual)',steps:[
+          'Descarga desde <a href="https://lmstudio.ai" target="_blank"><strong>lmstudio.ai</strong></a>',
+          'Busca y descarga un modelo (ej. <strong>Mistral 7B</strong> o <strong>Llama 3</strong>)',
+          'Clic en pestaña <strong>Local Server</strong> → <strong>Start Server</strong>',
+          'En StockAI establece URL: <strong>http://localhost:1234/v1</strong>'
+        ]}
+      ],
+      note:'💡 Mejores modelos: Llama 3 8B, Mistral 7B, Phi-3 Medium. Todos gratuitos.'
+    }
+  },
+  ar:{
+    tabs:['دليل التطبيق','Claude','ChatGPT','Gemini','على الجهاز'],
+    app:{
+      sections:[
+        {title:'ما هو StockAI؟',items:[
+          {icon:'📊',html:'يحلل StockAI الأسهم من <strong>أسواق الولايات المتحدة وإسرائيل</strong> باستخدام الذكاء الاصطناعي. يبحث عن أحدث الأخبار وتوصيات المحللين ومشاعر السوق — ثم يعطيك توصية شراء / بيع / احتفاظ مع درجة ثقة.'}
+        ]},
+        {title:'كيفية تحليل سهم',steps:[
+          'اربط الذكاء الاصطناعي — اضغط <strong>زر ⚙ الحالة</strong> في الرأس واختر مزوداً',
+          'أدخل <strong>رمز السهم</strong> (مثل AAPL, TSLA, TEVA) أو اضغط زر سريع',
+          'اضغط <strong>▶ تحليل</strong> — انتظر 15–30 ثانية',
+          'اقرأ التحليل الكامل: التوصية، الثقة، العوامل الإيجابية/السلبية، والمصادر'
+        ]},
+        {title:'ميزات قائمة المتابعة',items:[
+          {icon:'⭐',html:'<strong>أسهمي</strong> — أضف أي رمز. يُظهر الوقت منذ آخر تحليل.'},
+          {icon:'🇮🇱',html:'<strong>أفضل إسرائيل</strong> — قائمة جاهزة لأفضل الأسهم الإسرائيلية'},
+          {icon:'🇺🇸',html:'<strong>أفضل أمريكا</strong> — قائمة جاهزة لأفضل الأسهم الأمريكية'},
+          {icon:'▶▶',html:'<strong>تحليل الكل</strong> — يحلل كل سهم في القائمة واحداً تلو الآخر'},
+          {icon:'💾',html:'<strong>تصدير / استيراد</strong> — احتفظ بنسخة احتياطية واستعدها على أي جهاز'}
+        ]},
+        {title:'فهم النتائج',items:[
+          {icon:'🟢',html:'<strong>شراء</strong> — إشارات صعود قوية من الأساسيات والمشاعر والتقنيات'},
+          {icon:'🔴',html:'<strong>بيع</strong> — إشارات سلبية كبيرة؛ المخاطر تفوق الإمكانات'},
+          {icon:'🟡',html:'<strong>احتفاظ</strong> — إشارات مختلطة؛ ليست نقطة دخول أو خروج واضحة'},
+          {icon:'%',html:'<strong>درجة الثقة</strong> — يقين الذكاء الاصطناعي. 70%+ = إشارة موثوقة.'},
+          {icon:'⏱',html:'<strong>تحذير قديم</strong> — بعد ساعتين، يظهر زر "تحديث" تلقائياً'}
+        ]}
+      ],
+      note:'⚠ StockAI للبحث فقط. دائماً أجرِ تحليلك الخاص قبل الاستثمار.'
+    },
+    claude:{
+      sections:[
+        {title:'لماذا تختار Claude؟',items:[
+          {icon:'🌐',html:'Claude هو <strong>المزود الموصى به</strong> — يملك بحثاً على الإنترنت في الوقت الفعلي، يجد أحدث الأخبار وترقيات المحللين وبيانات الأرباح.'},
+          {icon:'🎯',html:'ينتج أدق وأكثر تفصيلاً للتحليل بين جميع المزودين المدعومين.'}
+        ]},
+        {title:'كيفية الحصول على Claude API Key',steps:[
+          'افتح <a href="https://console.anthropic.com" target="_blank"><strong>console.anthropic.com</strong></a> وأنشئ حساباً',
+          'اذهب إلى <strong>Billing</strong> ← أضف بطاقة ائتمان (تدفع فقط مقابل الاستخدام)',
+          'في الشريط الجانبي الأيسر، انقر <strong>API Keys</strong>',
+          'انقر <strong>Create Key</strong>، أعطه اسم "StockAI" وانسخه',
+          'في StockAI اضغط <strong>⚙</strong> ← اختر Claude ← الصق المفتاح ← احفظ'
+        ]}
+      ],
+      note:'💡 التكلفة: ~$0.01–0.03 لكل تحليل. 100 تحليل ≈ $1–3 دولار.'
+    },
+    openai:{
+      sections:[
+        {title:'عن ChatGPT (OpenAI)',items:[
+          {icon:'💬',html:'GPT-4o وGPT-4o Mini نماذج قوية. <strong>تنبيه:</strong> لا بحث على الإنترنت في الوقت الفعلي — يستخدم بيانات التدريب حتى مطلع 2024.'}
+        ]},
+        {title:'كيفية الحصول على OpenAI API Key',steps:[
+          'اذهب إلى <a href="https://platform.openai.com" target="_blank"><strong>platform.openai.com</strong></a> وسجّل الدخول',
+          'انقر على صورة الملف الشخصي (أعلى اليمين) ← <strong>API Keys</strong>',
+          'انقر <strong>+ Create new secret key</strong> — انسخه فوراً (يظهر مرة واحدة فقط!)',
+          'اذهب إلى <strong>Settings ← Billing</strong> وأضف وسيلة دفع',
+          'في StockAI اضغط <strong>⚙</strong> ← ChatGPT ← الصق المفتاح ← احفظ'
+        ]}
+      ],
+      note:'💡 GPT-4o Mini (~$0.005/تحليل) · GPT-4o (~$0.05/تحليل)'
+    },
+    gemini:{
+      sections:[
+        {title:'Gemini — مجاني 100% للبدء!',items:[
+          {icon:'✨',html:'Gemini 1.5 Flash له <strong>نسخة مجانية — بدون بطاقة ائتمان</strong>. 15 طلب/دقيقة و1M رمز/يوم.'}
+        ]},
+        {title:'كيفية الحصول على Gemini API Key (مجاناً)',steps:[
+          'اذهب إلى <a href="https://aistudio.google.com" target="_blank"><strong>aistudio.google.com</strong></a>',
+          'سجّل الدخول بأي حساب <strong>Google / Gmail</strong>',
+          'انقر الزر الأزرق <strong>"Get API Key"</strong>',
+          'انقر <strong>"Create API key in new project"</strong>',
+          'انسخ المفتاح (يبدأ بـ AIza...) ← الصقه في StockAI ← احفظ'
+        ]}
+      ],
+      note:'✅ أفضل اختيار للبدء مجاناً. لا بطاقة ائتمان مطلوبة.'
+    },
+    device:{
+      sections:[
+        {title:'AI على الجهاز — خصوصية ومجاني',items:[
+          {icon:'🔒',html:'شغّل الذكاء الاصطناعي <strong>محلياً على جهاز الكمبيوتر</strong>. لا تكاليف API، لا إنترنت للذكاء الاصطناعي، أقصى خصوصية.'},
+          {icon:'⚠️',html:'يتطلب كمبيوتراً قوياً (8GB+ RAM). الجودة تعتمد على النموذج المثبت.'}
+        ]},
+        {title:'الخيار أ — Ollama (الأسهل)',steps:[
+          'نزّل من <a href="https://ollama.ai" target="_blank"><strong>ollama.ai</strong></a> — Mac, Windows, Linux',
+          'افتح Terminal ونفّذ: <strong style="color:var(--gold)">ollama pull llama3</strong>',
+          'Ollama يعمل تلقائياً على <strong>http://localhost:11434</strong>',
+          'في StockAI: اختر "على الجهاز" — عنوان URL الافتراضي يعمل تلقائياً'
+        ]},
+        {title:'الخيار ب — LM Studio (واجهة مرئية)',steps:[
+          'نزّل من <a href="https://lmstudio.ai" target="_blank"><strong>lmstudio.ai</strong></a>',
+          'ابحث ونزّل نموذجاً (مثل <strong>Mistral 7B</strong> أو <strong>Llama 3</strong>)',
+          'انقر تبويب <strong>Local Server</strong> ← <strong>Start Server</strong>',
+          'في StockAI عيّن URL: <strong>http://localhost:1234/v1</strong>'
+        ]}
+      ],
+      note:'💡 أفضل النماذج: Llama 3 8B, Mistral 7B, Phi-3 Medium. جميعها مجانية.'
+    }
+  }
+};
+
+var currentGuideTab='app';
+var GUIDE_KEYS=['app','claude','openai','gemini','device'];
+
+function renderGuide(){
+  var lang=GUIDE_CONTENT[curLang]?curLang:'en';
+  var g=GUIDE_CONTENT[lang];
+  var tabsEl=document.getElementById('guideTabs');
+  var panesEl=document.getElementById('guidePanes');
+  // Build tabs
+  tabsEl.innerHTML='';
+  GUIDE_KEYS.forEach(function(key,i){
+    var btn=document.createElement('button');
+    btn.className='guide-tab'+(key===currentGuideTab?' active':'');
+    btn.setAttribute('id','gtab-'+key);
+    btn.textContent=g.tabs[i]||key;
+    btn.onclick=(function(k){return function(){switchGuideTab(k);};})(key);
+    tabsEl.appendChild(btn);
+  });
+  // Build panes
+  panesEl.innerHTML='';
+  GUIDE_KEYS.forEach(function(key){
+    var data=g[key];if(!data)return;
+    var pane=document.createElement('div');
+    pane.className='guide-pane'+(key===currentGuideTab?' active':'');
+    pane.id='gpane-'+key;
+    var html='';
+    (data.sections||[]).forEach(function(sec){
+      html+='<div class="guide-section"><div class="guide-section-title">'+sec.title+'</div>';
+      if(sec.items){sec.items.forEach(function(item){html+='<div class="guide-item"><div class="guide-icon">'+item.icon+'</div><div class="guide-text">'+item.html+'</div></div>';});}
+      if(sec.steps){sec.steps.forEach(function(step,n){html+='<div class="guide-step"><div class="guide-step-num">'+(n+1)+'</div><div class="guide-step-text">'+step+'</div></div>';});}
+      html+='</div>';
+    });
+    if(data.note)html+='<div class="guide-note">'+data.note+'</div>';
+    pane.innerHTML=html;
+    panesEl.appendChild(pane);
+  });
+}
+
+function openGuide(){
+  currentGuideTab='app';
+  renderGuide();
+  document.getElementById('guideOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeGuide(){document.getElementById('guideOverlay').classList.remove('open');document.body.style.overflow='';}
+function switchGuideTab(tab){
+  currentGuideTab=tab;
+  document.querySelectorAll('.guide-tab').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.guide-pane').forEach(function(p){p.classList.remove('active');});
+  var tb=document.getElementById('gtab-'+tab);if(tb)tb.classList.add('active');
+  var pn=document.getElementById('gpane-'+tab);if(pn)pn.classList.add('active');
+}
+
+/* ══════════════════════════════════════════════════
+   WATCHLIST
+══════════════════════════════════════════════════ */
+function loadWatchlist(){try{return JSON.parse(localStorage.getItem('stockai_watchlist'))||[];}catch(e){return[];}}
+function saveWatchlist(list){localStorage.setItem('stockai_watchlist',JSON.stringify(list));updateWatchCount();}
+function updateWatchCount(){document.getElementById('watchCount').textContent=loadWatchlist().length;}
+function isInWatchlist(sym){return loadWatchlist().indexOf(sym)!==-1;}
+function addToWatchlist(sym){
+  var s=sym||(document.getElementById('watchAddInput').value.trim().toUpperCase());
+  if(!s)return;
+  var list=loadWatchlist();
+  if(list.indexOf(s)===-1){list.push(s);saveWatchlist(list);}
+  document.getElementById('watchAddInput').value='';
+  renderWatchlist();updateAddWatchBtn();showToastMsg('✓ '+s);
+}
+function removeFromWatchlist(sym){
+  saveWatchlist(loadWatchlist().filter(function(x){return x!==sym;}));
+  renderWatchlist();updateAddWatchBtn();
+}
+function toggleWatchFromResult(){
+  var sym=document.getElementById('rSym').textContent;if(!sym)return;
+  if(isInWatchlist(sym))removeFromWatchlist(sym);else addToWatchlist(sym);
+  updateAddWatchBtn();
+}
+function updateAddWatchBtn(){
+  var sym=document.getElementById('rSym').textContent;
+  var btn=document.getElementById('btnAddWatch');if(!sym||!btn)return;
+  if(isInWatchlist(sym)){btn.textContent=T('addedToWatch');btn.className='btn-add-watch added';}
+  else{btn.textContent=T('addToWatch');btn.className='btn-add-watch';}
+}
+function renderWatchlist(){
+  var list=loadWatchlist();
+  var el=document.getElementById('watchItemsList');
+  document.querySelectorAll('[data-t]').forEach(function(e){e.textContent=T(e.getAttribute('data-t'));});
+  document.querySelectorAll('[data-tp]').forEach(function(e){e.placeholder=T(e.getAttribute('data-tp'));});
+  document.getElementById('watchPanelTitle').textContent=T('watchPanelTitle');
+  if(!list.length){
+    el.innerHTML='<div class="watch-empty"><div class="watch-empty-icon">'+T('watchEmptyIcon')+'</div>'+T('watchEmpty').replace('\n','<br>')+'</div>';
+    document.getElementById('btnAnalyzeAll').disabled=true;return;
+  }
+  document.getElementById('btnAnalyzeAll').disabled=false;
+  el.innerHTML='';
+  var cache=getAnalysisCache();
+  list.forEach(function(sym){
+    var entry=cache[sym];
+    var ageStr=entry&&entry.ts?formatAge(entry.ts):'';
+    var d=document.createElement('div');d.className='watch-item';
+    d.innerHTML='<div class="watch-item-left">'
+      +'<div class="watch-item-sym" onclick="analyzeFromWatch(\''+sym+'\')">'+sym+'</div>'
+      +(ageStr?'<div class="watch-item-age">'+T('staleMsg').replace('{ago}',ageStr)+'</div>':'')
+      +'</div><div class="watch-item-actions">'
+      +'<button class="btn-analyze-watch" onclick="analyzeFromWatch(\''+sym+'\')">'+T('analyzeBtn')+'</button>'
+      +'<button class="btn-remove-watch" onclick="removeFromWatchlist(\''+sym+'\')">✕</button>'
+      +'</div>';
+    el.appendChild(d);
+  });
+  renderPresetList('israelList',ISRAEL_STOCKS);
+  renderPresetList('usList',US_STOCKS);
+}
+function renderPresetList(elId,stocks){
+  var el=document.getElementById(elId);var list=loadWatchlist();el.innerHTML='';
+  stocks.forEach(function(s){
+    var inList=list.indexOf(s.sym)!==-1;
+    var d=document.createElement('div');d.className='preset-item';
+    d.innerHTML='<div class="preset-sym">'+s.sym+'</div><div class="preset-name">'+s.name+'</div>'
+      +'<div class="preset-actions">'
+      +'<button class="btn-preset-analyze" onclick="analyzeFromWatch(\''+s.sym+'\')">'+T('analyzeBtn')+'</button>'
+      +'<button class="btn-preset-add'+(inList?' added':'')+'" onclick="togglePreset(\''+s.sym+'\')">'+(inList?T('addedToWatch'):T('addToWatch'))+'</button>'
+      +'</div>';
+    el.appendChild(d);
+  });
+}
+function togglePreset(sym){if(isInWatchlist(sym))removeFromWatchlist(sym);else addToWatchlist(sym);renderWatchlist();}
+function openWatchPanel(){renderWatchlist();document.getElementById('watchPanel').classList.add('open');document.getElementById('watchOverlay').classList.add('open');document.body.style.overflow='hidden';}
+function closeWatchPanel(){document.getElementById('watchPanel').classList.remove('open');document.getElementById('watchOverlay').classList.remove('open');document.body.style.overflow='';}
+function switchTab(tab){
+  document.querySelectorAll('.watch-tab').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('pane-'+tab).classList.add('active');
+  if(tab==='israel')renderPresetList('israelList',ISRAEL_STOCKS);
+  else if(tab==='us')renderPresetList('usList',US_STOCKS);
+}
+function analyzeFromWatch(sym){closeWatchPanel();document.getElementById('stockInput').value=sym;analyzeStock(sym);window.scrollTo({top:0,behavior:'smooth'});}
+
+/* Analyze All */
+var analyzeAllRunning=false;
+async function analyzeAllWatchlist(){
+  var list=loadWatchlist();if(!list.length||analyzeAllRunning)return;
+  analyzeAllRunning=true;
+  var wrap=document.getElementById('allResultsWrap');wrap.style.display='block';wrap.innerHTML='';
+  document.getElementById('btnAnalyzeAll').disabled=true;
+  list.forEach(function(sym){
+    var row=document.createElement('div');row.className='all-result-row';row.id='allrow-'+sym;
+    row.innerHTML='<div class="all-result-sym">'+sym+'</div><div class="all-result-loading" id="allstat-'+sym+'">...</div>';
+    wrap.appendChild(row);
+  });
+  for(var j=0;j<list.length;j++){
+    var s=list[j];
+    try{
+      var r=await fetchAnalysis(s);
+      cacheAnalysis(s,r);
+      var statEl=document.getElementById('allstat-'+s);var rowEl=document.getElementById('allrow-'+s);
+      if(statEl&&r){
+        var recKey=r.recommendation;
+        var color=recKey==='BUY'?'var(--green)':recKey==='SELL'?'var(--red)':'var(--gold)';
+        var recTxt=recKey==='BUY'?T('recBuy'):recKey==='SELL'?T('recSell'):T('recHold');
+        statEl.className='all-result-rec';statEl.style.color=color;statEl.textContent=recTxt+' '+r.confidenceScore+'%';
+        if(r.currentPrice){var pr=document.createElement('div');pr.className='all-result-conf';pr.textContent=r.currentPrice;rowEl.appendChild(pr);}
+        (function(sym2,res){rowEl.onclick=function(){closeWatchPanel();renderResult(res,sym2);document.getElementById('stockInput').value=sym2;window.scrollTo({top:0,behavior:'smooth'});};})(s,r);
+      }
+    }catch(e){var se=document.getElementById('allstat-'+s);if(se){se.textContent='ERR';se.style.color='var(--red)';}}
+  }
+  analyzeAllRunning=false;document.getElementById('btnAnalyzeAll').disabled=false;
+  renderWatchlist();
+}
+
+/* Export/Import */
+function exportWatchlist(){
+  var data=JSON.stringify({stockai_watchlist:loadWatchlist(),exported:new Date().toISOString()},null,2);
+  var blob=new Blob([data],{type:'application/json'});var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='stockai-watchlist.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToastMsg(T('backupExport')+' ✓');
+}
+function importWatchlist(){document.getElementById('importFileInput').click();}
+function handleImport(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);var imported=data.stockai_watchlist||data;
+      if(Array.isArray(imported)){var ex=loadWatchlist();imported.forEach(function(s){if(ex.indexOf(s)===-1)ex.push(s);});saveWatchlist(ex);renderWatchlist();showToastMsg(T('backupImport')+' ✓');}
+    }catch(err){showToastMsg('Error reading file');}
+  };reader.readAsText(file);e.target.value='';
+}
+
+/* ══════════════════════════════════════════════════
+   ANALYSIS CACHE — stale detection
+══════════════════════════════════════════════════ */
+function getAnalysisCache(){try{return JSON.parse(localStorage.getItem('stockai_cache'))||{};}catch(e){return{};}}
+function saveAnalysisCache(cache){localStorage.setItem('stockai_cache',JSON.stringify(cache));}
+function cacheAnalysis(sym,result){
+  var cache=getAnalysisCache();
+  cache[sym]={result:result,ts:Date.now()};
+  var keys=Object.keys(cache);
+  if(keys.length>20)delete cache[keys[0]];
+  saveAnalysisCache(cache);
+}
+function formatAge(ts){
+  var mins=Math.floor((Date.now()-ts)/60000);
+  if(mins<1)return '<1min';if(mins<60)return mins+'min';
+  var hrs=Math.floor(mins/60);if(hrs<24)return hrs+'h';
+  return Math.floor(hrs/24)+'d';
+}
+function isStale(sym){
+  var cache=getAnalysisCache();var entry=cache[sym];
+  if(!entry)return false;
+  return(Date.now()-entry.ts)>2*60*60*1000;
+}
+function showStaleBar(sym,ts){
+  var bar=document.getElementById('staleBar');
+  document.getElementById('staleText').textContent=T('staleMsg').replace('{ago}',formatAge(ts));
+  bar.classList.add('visible');
+}
+function hideStaleBar(){document.getElementById('staleBar').classList.remove('visible');}
+function refreshAnalysis(){var sym=document.getElementById('rSym').textContent;if(sym)analyzeStock(sym);}
+
+/* ══════════════════════════════════════════════════
+   CORE AI FETCH
+══════════════════════════════════════════════════ */
+var analysisHistory=[];
+try{analysisHistory=JSON.parse(localStorage.getItem('stockai_history'))||[];}catch(e){analysisHistory=[];}
+function persistHistory(){try{localStorage.setItem('stockai_history',JSON.stringify(analysisHistory.slice(0,5)));}catch(e){}}
+var currentSymbol='';
+function quickAnalyze(sym){document.getElementById('stockInput').value=sym;loadLiveData(sym);}
+
+async function analyzeStock(forceSym){
+  var symbol=forceSym||(document.getElementById('stockInput').value.trim().toUpperCase());
+  if(!symbol)return;
+  var cfg=loadAIConfig();
+  if(!cfg.provider){
+    if(currentLiveSymbol!==symbol)loadLiveData(symbol);
+    showError(T('errNoAI'));openSetup();return;
+  }
+  currentSymbol=symbol;
+  setLoading(true,symbol);hideStaleBar();
+  try{
+    // קריטי: ממתינים לנתונים החיים לפני ה-AI — כדי שהמחיר האמיתי יוזרק לניתוח!
+    if(!window.__lastLiveQuote||window.__lastLiveQuote.symbol!==symbol){
+      try{await loadLiveData(symbol);}catch(e){/* נתונים חיים אופציונליים */}
+    }
+    var result=await fetchAnalysis(symbol);
+    cacheAnalysis(symbol,result);
+    renderResult(result,symbol);
+    addToHistory(symbol,result);
+    if(isStale(symbol)){var e=getAnalysisCache()[symbol];if(e)showStaleBar(symbol,e.ts);}
+  }catch(err){
+    var em=String(err.message||'');
+    if(/quota|429|exhaust|rate.?limit|overload|503/i.test(em)){
+      showError(QUOTA_T[curLang]||QUOTA_T.en);
+    }else{
+      showError(T('errGeneral')+': '+em);
+    }
+  }
+  finally{setLoading(false,symbol);}
+}
+
+var QUOTA_T={
+  he:'⏳ כל המפתחות מיצו את המכסה הרגעית (או שהשרתים עמוסים). המתן דקה ונסה שוב — זה יעבוד!',
+  en:'⏳ All keys hit their per-minute quota (or servers are busy). Wait a minute and try again — it will work!',
+  ru:'⏳ Все ключи исчерпали минутную квоту (или серверы перегружены). Подождите минуту и попробуйте снова!',
+  es:'⏳ Todas las claves alcanzaron su cuota por minuto (o los servidores están ocupados). ¡Espera un minuto e intenta de nuevo!',
+  ar:'⏳ استنفدت جميع المفاتيح حصتها الدقيقية (أو الخوادم مشغولة). انتظر دقيقة وحاول مجدداً!'
+};
+
+/* AI response language — ה-AI עונה בשפת הממשק */
+var AI_LANG_NAMES={he:'Hebrew',en:'English',ru:'Russian',es:'Spanish',ar:'Arabic'};
+function aiLangInstruction(){
+  if(curLang==='en')return '';
+  return 'IMPORTANT: Write all free-text values (summary, bullishFactors, bearishFactors, analystRating, sources) in '+(AI_LANG_NAMES[curLang]||'English')+'. Keep JSON keys and enum values (BUY/SELL/HOLD, POSITIVE/NEUTRAL/NEGATIVE, UP/DOWN, LOW/MEDIUM/HIGH) in English exactly as specified. ';
+}
+
+/* Build real-time data context for AI prompt injection */
+function buildLiveContext(symbol){
+  var q=window.__lastLiveQuote;
+  if(!q||q.symbol!==symbol)return aiLangInstruction();
+  var parts=['REAL-TIME MARKET DATA (from Yahoo Finance, fetched '+new Date().toLocaleString()+'):'];
+  if(q.regularPrice!=null)parts.push('Current price: '+q.regularPrice+' '+(q.currency||'USD')+' ('+fmtPct(q.regularChangePct)+' today)');
+  if(q.open!=null)parts.push('Open: '+q.open+', Day range: '+q.dayLow+'-'+q.dayHigh);
+  if(q.week52Low!=null)parts.push('52-week range: '+q.week52Low+'-'+q.week52High);
+  if(q.marketCap)parts.push('Market cap: '+fmtNum(q.marketCap));
+  if(q.peRatio)parts.push('P/E: '+Math.round(q.peRatio*100)/100+(q.eps?', EPS: '+Math.round(q.eps*100)/100:''));
+  if(q.volume)parts.push('Volume: '+fmtNum(q.volume)+(q.avgVolume?' (avg: '+fmtNum(q.avgVolume)+')':''));
+  if(q.targetMean)parts.push('Analyst mean target: '+q.targetMean+(q.recommendationKey?', consensus: '+q.recommendationKey:'')+(q.numberOfAnalysts?' ('+q.numberOfAnalysts+' analysts)':''));
+  if(q.dividendYield)parts.push('Dividend yield: '+(Math.round(q.dividendYield*10000)/100)+'%');
+  if(q.beta)parts.push('Beta: '+Math.round(q.beta*100)/100);
+  if(q.sector)parts.push('Sector: '+q.sector+(q.industry?' / '+q.industry:''));
+  if(q.earningsDate)parts.push('Next earnings: '+q.earningsDate);
+  return parts.join('\n')+'\n\nUse this VERIFIED real-time data as the factual basis for prices and fundamentals. '+aiLangInstruction();
+}
+
+async function fetchAnalysis(symbol){
+  var cfg=loadAIConfig();
+  if(!cfg.provider)throw new Error('No AI provider configured');
+  if(cfg.provider==='claude')return await fetchClaude(symbol,cfg.claudeKey);
+  if(cfg.provider==='openai')return await fetchOpenAI(symbol,cfg.openaiKey,'https://api.openai.com/v1/chat/completions','gpt-4o-mini');
+  if(cfg.provider==='gemini')return await fetchGemini(symbol,cfg.geminiKey);
+  if(cfg.provider==='device'){
+    var base=cfg.deviceUrl||'http://localhost:11434/v1';
+    var ep=base.replace(/\/+$/,'')+'/chat/completions';
+    return await fetchOpenAI(symbol,'none',ep,'llama3');
+  }
+  if(cfg.provider==='custom'){
+    var ep2=cfg.customUrl||'';
+    return await fetchOpenAI(symbol,cfg.customKey||'none',ep2,'gpt-4o-mini');
+  }
+  throw new Error('Unknown AI provider');
+}
+
+async function fetchClaude(symbol,apiKey){
+  if(!apiKey)throw new Error('Claude API key not set');
+  var body={model:'claude-sonnet-4-20250514',max_tokens:3000,system:AI_SYSTEM,
+    tools:[{type:'web_search_20250305',name:'web_search'}],
+    messages:[{role:'user',content:buildLiveContext(symbol)+'Search the web for current stock data and analyze: '+symbol+'. Return ONLY the JSON object as specified in the system prompt.'}]
+  };
+  var res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error((e.error&&e.error.message)||'HTTP '+res.status);}
+  var data=await res.json();
+  // Handle tool use (web search)
+  if(data.stop_reason==='tool_use'){
+    var toolBlocks=data.content.filter(function(b){return b.type==='tool_use';});
+    var toolResults=toolBlocks.map(function(b){
+      return{type:'tool_result',tool_use_id:b.id,content:'Web search completed for: '+(b.input&&b.input.query?b.input.query:symbol)+'. Please use your knowledge to provide the analysis.'};
+    });
+    var res2=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,system:AI_SYSTEM,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[
+          {role:'user',content:'Analyze stock '+symbol+'. Return ONLY the JSON.'},
+          {role:'assistant',content:data.content},
+          {role:'user',content:toolResults}
+        ]})
+    });
+    var d2=await res2.json();
+    var textBlocks=(d2.content||[]).filter(function(b){return b.type==='text';});
+    return parseAIResponse(textBlocks.map(function(b){return b.text;}).join('\n'));
+  }
+  var textBlocks2=(data.content||[]).filter(function(b){return b.type==='text';});
+  return parseAIResponse(textBlocks2.map(function(b){return b.text;}).join('\n'));
+}
+
+async function fetchOpenAI(symbol,apiKey,endpoint,model){
+  if(!endpoint)throw new Error('No API endpoint configured');
+  var headers={'Content-Type':'application/json'};
+  if(apiKey&&apiKey!=='none')headers['Authorization']='Bearer '+apiKey;
+  var res=await fetch(endpoint,{
+    method:'POST',headers:headers,
+    body:JSON.stringify({model:model,max_tokens:2000,
+      messages:[{role:'system',content:AI_SYSTEM},{role:'user',content:buildLiveContext(symbol)+'Analyze stock '+symbol+'. Return ONLY the JSON object, no other text.'}]})
+  });
+  if(!res.ok){var e=await res.json().catch(function(){return{};});throw new Error((e.error&&e.error.message)||'HTTP '+res.status);}
+  var data=await res.json();
+  var text=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+  return parseAIResponse(text);
+}
+
+/* Gemini — ריבוי מפתחות: הזן כמה מפתחות, מעבר אוטומטי כשמכסה נגמרת */
+function getGeminiKeys(){
+  var raw=loadAIConfig().geminiKey||'';
+  return raw.split(/[\n,;]+/).map(function(s){return s.trim();}).filter(Boolean);
+}
+var __geminiKeyIdx=parseInt(localStorage.getItem('stockai_gemini_keyidx')||'0')||0;
+async function geminiCallMulti(keys,promptText,maxTokens){
+  if(!keys.length)throw new Error('No Gemini API key');
+  var start=__geminiKeyIdx%keys.length;
+  var lastErr=null;
+  for(var k=0;k<keys.length;k++){
+    var idx=(start+k)%keys.length;
+    try{
+      var result=await geminiCall(keys[idx],promptText,maxTokens);
+      __geminiKeyIdx=idx;
+      localStorage.setItem('stockai_gemini_keyidx',String(idx));
+      return result;
+    }catch(e){
+      lastErr=e;
+      var msg=String(e.message||'').toLowerCase();
+      // מכסה/מפתח בעייתי → נסה את המפתח הבא. שגיאה אחרת → עצור
+      var retriable=msg.indexOf('quota')>-1||msg.indexOf('429')>-1||msg.indexOf('rate')>-1||msg.indexOf('exhaust')>-1||msg.indexOf('api key')>-1||msg.indexOf('invalid')>-1||msg.indexOf('permission')>-1;
+      if(!retriable)throw e;
+    }
+  }
+  throw lastErr;
+}
+
+/* Gemini — שרשרת מודלים: מנסה מהחדש לישן עד שאחד עובד */
+var GEMINI_MODELS=['gemini-2.5-flash','gemini-2.0-flash','gemini-flash-latest','gemini-1.5-flash'];
+var __geminiWorking=localStorage.getItem('stockai_gemini_model')||null;
+async function geminiCall(apiKey,promptText,maxTokens){
+  var models=__geminiWorking?[__geminiWorking].concat(GEMINI_MODELS.filter(function(m){return m!==__geminiWorking;})):GEMINI_MODELS;
+  var lastErr=null;
+  for(var i=0;i<models.length;i++){
+    var genCfg={temperature:0.3,maxOutputTokens:Math.max(maxTokens||2000,6000)};
+    // מודלי 2.5 "חושבים" כברירת מחדל ושורפים את תקציב הטוקנים — מכבים את זה
+    if(models[i].indexOf('gemini-2.5')===0)genCfg.thinkingConfig={thinkingBudget:0};
+    var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+models[i]+':generateContent?key='+apiKey,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:promptText}]}],generationConfig:genCfg})
+    });
+    if(res.ok){
+      __geminiWorking=models[i];
+      localStorage.setItem('stockai_gemini_model',models[i]);
+      return await res.json();
+    }
+    var e=await res.json().catch(function(){return{};});
+    lastErr=new Error((e.error&&e.error.message)||'HTTP '+res.status);
+    // 404=מודל לא קיים · 429=מכסה · 500/503=עומס בשרתי גוגל — כולם: נסה את המודל הבא
+    if(res.status!==404&&res.status!==429&&res.status!==500&&res.status!==503)throw lastErr;
+    if(res.status===429){__geminiWorking=null;localStorage.removeItem('stockai_gemini_model');}
+  }
+  throw lastErr||new Error('No Gemini model available');
+}
+
+async function fetchGemini(symbol,apiKey){
+  var keys=getGeminiKeys();
+  if(!keys.length&&apiKey)keys=[apiKey];
+  if(!keys.length)throw new Error('Gemini API key not set');
+  var data=await geminiCallMulti(keys,AI_SYSTEM+'\n\n'+buildLiveContext(symbol)+'Now analyze stock: '+symbol+'. Return ONLY the JSON object, absolutely no other text or formatting.',2000);
+  var gparts=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
+  var text=gparts.filter(function(p){return p&&p.text&&!p.thought;}).map(function(p){return p.text;}).join('\n');
+  if(!text)text=gparts.map(function(p){return (p&&p.text)||'';}).join('\n');
+  return parseAIResponse(text);
+}
+
+function parseAIResponse(text){
+  if(!text)throw new Error('Empty response from AI');
+  var cleaned=text.replace(/```json|```/g,'').trim();
+  // Find first { to last }
+  var start=cleaned.indexOf('{');var end=cleaned.lastIndexOf('}');
+  if(start===-1||end===-1)throw new Error('No JSON found in response');
+  return JSON.parse(cleaned.substring(start,end+1));
+}
+
+/* ══════════════════════════════════════════════════
+   RENDER RESULT
+══════════════════════════════════════════════════ */
+function setLoading(on,sym){
+  document.getElementById('loadingBox').classList.toggle('visible',on);
+  document.getElementById('errorBox').classList.remove('visible');
+  if(on)document.getElementById('resultCard').classList.remove('visible');
+  if(on)document.getElementById('loadingSym').textContent=sym||'';
+  if(on)try{document.getElementById('loadingBox').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+  var btn=document.getElementById('btnAnalyze');
+  btn.disabled=on;btn.setAttribute('data-t',on?'btnAnalyzing':'btnAnalyze');
+  renderText();
+}
+function showError(msg){
+  document.getElementById('loadingBox').classList.remove('visible');
+  var el=document.getElementById('errorBox');el.textContent=msg;el.classList.add('visible');
+  try{el.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+}
+
+function renderResult(r,symbol){
+  if(!r)return;
+  document.getElementById('rSym').textContent=r.symbol||symbol||'';
+  document.getElementById('rName').textContent=r.companyName||'';
+  document.getElementById('rPrice').textContent=r.currentPrice||'—';
+  document.getElementById('rTarget').textContent=r.priceTarget||'—';
+  document.getElementById('rAnalyst').textContent=r.analystRating||'—';
+  document.getElementById('rSummary').textContent=r.summary||'';
+  var conf=parseInt(r.confidenceScore)||0;
+  document.getElementById('rConfNum').textContent=conf+'% — '+getConfLabel(conf);
+  document.getElementById('rFund').textContent=(parseInt(r.fundamentalScore)||0)+'/100';
+  setTimeout(function(){document.getElementById('rConfFill').style.width=conf+'%';},120);
+  // Recommendation badge
+  var recKey=(r.recommendation||'HOLD').toUpperCase();
+  var recText=recKey==='BUY'?T('recBuy'):recKey==='SELL'?T('recSell'):T('recHold');
+  var recPfx=recKey==='BUY'?'▲ ':recKey==='SELL'?'▼ ':'◼ ';
+  var recEl=document.getElementById('rRec');recEl.textContent=recPfx+recText;
+  recEl.className='rec-badge '+(recKey==='BUY'?'rec-buy':recKey==='SELL'?'rec-sell':'rec-hold');
+  // Risk
+  var riskMap={LOW:{t:T('riskLow'),c:'var(--green)'},MEDIUM:{t:T('riskMed'),c:'var(--yellow)'},HIGH:{t:T('riskHigh'),c:'var(--red)'}};
+  var rd=riskMap[(r.riskLevel||'').toUpperCase()]||{t:r.riskLevel||'—',c:'var(--text)'};
+  var rEl=document.getElementById('rRisk');rEl.textContent=rd.t;rEl.style.color=rd.c;
+  // Social sentiment
+  var socMap={POSITIVE:{t:T('sentPos'),c:'var(--green)'},NEUTRAL:{t:T('sentNeu'),c:'var(--yellow)'},NEGATIVE:{t:T('sentNeg'),c:'var(--red)'}};
+  var sd=socMap[(r.socialSentiment||'').toUpperCase()]||{t:r.socialSentiment||'—',c:'var(--text)'};
+  var sEl=document.getElementById('rSocial');sEl.textContent=sd.t;sEl.style.color=sd.c;
+  // Technical signal
+  var techMap={UP:{t:T('techUp'),c:'var(--green)'},DOWN:{t:T('techDown'),c:'var(--red)'},NEUTRAL:{t:T('techNeu'),c:'var(--yellow)'}};
+  var td=techMap[(r.technicalSignal||'').toUpperCase()]||{t:r.technicalSignal||'—',c:'var(--text)'};
+  var tEl=document.getElementById('rTech');tEl.textContent=td.t;tEl.style.color=td.c;
+  // Bull/Bear factors
+  var bullEl=document.getElementById('rBull');bullEl.innerHTML='';
+  (r.bullishFactors||[]).forEach(function(f){var d=document.createElement('div');d.className='factor-item';d.innerHTML='<div class="factor-dot" style="background:var(--green)"></div><span>'+escHtml(f)+'</span>';bullEl.appendChild(d);});
+  var bearEl=document.getElementById('rBear');bearEl.innerHTML='';
+  (r.bearishFactors||[]).forEach(function(f){var d=document.createElement('div');d.className='factor-item';d.innerHTML='<div class="factor-dot" style="background:var(--red)"></div><span>'+escHtml(f)+'</span>';bearEl.appendChild(d);});
+  // Sources
+  var srcEl=document.getElementById('rSources');srcEl.innerHTML='';
+  (r.sources||[]).forEach(function(s){var sp=document.createElement('span');sp.className='source-tag';sp.textContent=s;srcEl.appendChild(sp);});
+  document.getElementById('resultCard').classList.add('visible');
+  try{document.getElementById('resultCard').scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
+  currentSymbol=r.symbol||symbol;
+  updateAddWatchBtn();
+  // Check if stale
+  var cache=getAnalysisCache();var entry=cache[currentSymbol];
+  if(entry&&isStale(currentSymbol))showStaleBar(currentSymbol,entry.ts);
+  else hideStaleBar();
+}
+
+function getConfLabel(s){if(s>=75)return T('confHigh');if(s>=50)return T('confMed');return T('confLow');}
+
+function addToHistory(sym,result){
+  analysisHistory.unshift({symbol:sym,result:result,time:new Date().toLocaleTimeString()});
+  if(analysisHistory.length>5)analysisHistory.pop();
+  persistHistory();
+  renderHistory();
+}
+function renderHistory(){
+  var wrap=document.getElementById('historyWrap');var list=document.getElementById('historyItems');
+  if(!analysisHistory.length){wrap.style.display='none';return;}
+  wrap.style.display='block';list.innerHTML='';
+  analysisHistory.forEach(function(h){
+    var recKey=(h.result.recommendation||'HOLD').toUpperCase();
+    var color=recKey==='BUY'?'var(--green)':recKey==='SELL'?'var(--red)':'var(--gold)';
+    var recText=recKey==='BUY'?T('recBuy'):recKey==='SELL'?T('recSell'):T('recHold');
+    var el=document.createElement('div');el.className='hist-item';
+    el.innerHTML='<div class="hist-sym" style="color:'+color+'">'+escHtml(h.symbol)+'</div>'
+      +'<div class="hist-rec" style="color:'+color+'">'+escHtml(recText)+'</div>'
+      +'<div class="hist-time">'+h.time+'</div>';
+    el.onclick=function(){renderResult(h.result,h.symbol);document.getElementById('stockInput').value=h.symbol;};
+    list.appendChild(el);
+  });
+}
+
+/* ══════════════════════════════════════════════════
+   SHARE + PWA + UTILS
+══════════════════════════════════════════════════ */
+function shareApp(){
+  var url='https://barakaflalo.github.io/appnest';
+  if(navigator.share){navigator.share({title:T('shareTitle'),text:T('shareText'),url:url}).catch(function(){});return;}
+  var txt=T('shareText')+'\n'+url;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){showToastMsg('✓ Copied!');});}
+  else{var ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);showToastMsg('✓ Copied!');}
+}
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredPrompt=e;
+  if(!localStorage.getItem('pwa_dismissed')){
+    document.getElementById('pwaBanner').classList.add('visible');
+    document.getElementById('pwaBannerTitle').textContent=T('pwaTitle');
+    document.getElementById('pwaBannerText').textContent=T('pwaText');
+  }
+});
+function installPWA(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.then(function(){deferredPrompt=null;document.getElementById('pwaBanner').classList.remove('visible');});}
+function dismissPWA(){localStorage.setItem('pwa_dismissed','1');document.getElementById('pwaBanner').classList.remove('visible');}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToastMsg(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   LIVE MARKET DATA — טיקר, כרטיס נתונים, גרף, מט"ח
+══════════════════════════════════════════════════ */
+var LIVE_T={
+  he:{updated:'עודכן',open:'פתיחה',high:'גבוה יומי',low:'נמוך יומי',volume:'מחזור',avgVol:'מחזור ממוצע',mcap:'שווי שוק',pe:'מכפיל רווח',eps:'רווח למניה',beta:'בטא',div:'תשואת דיבידנד',w52:'טווח 52 שבועות',target:'יעד אנליסטים',analysts:'אנליסטים',rec:'קונצנזוס',earnings:'דוח קרוב',sector:'סקטור',employees:'עובדים',aiCta:'רוצה ניתוח AI חכם של המניה?',aiCtaNoKey:'חבר AI בחינם (2 דק\') וקבל ניתוח קנה/מכור מלא',btnAnalyze:'▶ ניתוח AI',btnConnect:'⚙ חבר AI',forex:'💱 מט"ח',crypto:'₿ קריפטו',preMarket:'טרום מסחר',postMarket:'אחרי מסחר',marketOpen:'● שוק פתוח',marketClosed:'○ שוק סגור',dataErr:'שגיאה בטעינת נתונים — נסה שוב',disclaimer:'⚠ הנתונים נשאבים ממקורות חיצוניים ברשת (Yahoo Finance ואחרים) ומוצגים לנוחות בלבד. ייתכנו עיכובים, טעויות או אי-דיוקים. יש לאמת כל נתון מול מקור מוסמך לפני קבלת החלטה. האפליקציה והמפתחים אינם אחראים לכל נזק או הפסד.',newsTitle:'📰 חדשות אחרונות',tabOverview:'סקירה',tabAnalysts:'אנליסטים',tabFinance:'פיננסים',tabCompany:'חברה',tabNews:'חדשות',insiderT:'👤 עסקאות בעלי עניין',margin:'שולי רווח',roe:'תשואה על הון',revGrowth:'צמיחת הכנסות',cash:'מזומנים',debt:'חוב',fcf:'תזרים חופשי',insiders:'פנימיים %',inst:'מוסדיים %',shortF:'שורט %',ma50:'ממוצע 50 יום',ma200:'ממוצע 200 יום',recTrendT:'פילוח המלצות אנליסטים',earnHistT:'היסטוריית דוחות EPS',finHistT:'הכנסות ורווח נקי שנתי',revenueL:'הכנסות',netIncomeL:'רווח נקי',lastActionT:'פעולת אנליסט אחרונה',sBuy:'קנייה חזקה',rBuy:'קנייה',rHold:'החזקה',rSell:'מכירה',sSell:'מכירה חזקה',rangeD:'יום',rangeW:'שבוע',rangeM:'חודש',range6M:'חצי שנה',rangeY:'שנה',range5Y:'5 שנים'},
+  en:{updated:'Updated',open:'Open',high:'Day High',low:'Day Low',volume:'Volume',avgVol:'Avg Volume',mcap:'Market Cap',pe:'P/E Ratio',eps:'EPS',beta:'Beta',div:'Dividend Yield',w52:'52W Range',target:'Analyst Target',analysts:'Analysts',rec:'Consensus',earnings:'Next Earnings',sector:'Sector',employees:'Employees',aiCta:'Want a smart AI analysis of this stock?',aiCtaNoKey:'Connect AI for free (2 min) and get full BUY/SELL analysis',btnAnalyze:'▶ AI Analysis',btnConnect:'⚙ Connect AI',forex:'💱 Forex',crypto:'₿ Crypto',preMarket:'Pre-Market',postMarket:'After Hours',marketOpen:'● Market Open',marketClosed:'○ Market Closed',dataErr:'Error loading data — try again',disclaimer:'⚠ Data is sourced from external web sources (Yahoo Finance and others) and shown for convenience only. Delays, errors or inaccuracies may occur. Verify all data with an authorized source before making decisions. The app and developers bear no responsibility for any damage or loss.',newsTitle:'📰 Latest News',tabOverview:'Overview',tabAnalysts:'Analysts',tabFinance:'Financials',tabCompany:'Company',tabNews:'News',insiderT:'👤 Insider Transactions',margin:'Profit Margin',roe:'ROE',revGrowth:'Revenue Growth',cash:'Total Cash',debt:'Total Debt',fcf:'Free Cash Flow',insiders:'Insiders %',inst:'Institutions %',shortF:'Short %',ma50:'50-Day MA',ma200:'200-Day MA',recTrendT:'Analyst Recommendations',earnHistT:'EPS Earnings History',finHistT:'Annual Revenue & Net Income',revenueL:'Revenue',netIncomeL:'Net Income',lastActionT:'Latest Analyst Action',sBuy:'Strong Buy',rBuy:'Buy',rHold:'Hold',rSell:'Sell',sSell:'Strong Sell',rangeD:'1D',rangeW:'1W',rangeM:'1M',range6M:'6M',rangeY:'1Y',range5Y:'5Y'},
+  ru:{updated:'Обновлено',open:'Открытие',high:'Макс. дня',low:'Мин. дня',volume:'Объём',avgVol:'Ср. объём',mcap:'Капитализация',pe:'P/E',eps:'EPS',beta:'Бета',div:'Дивиденд',w52:'Диапазон 52 нед.',target:'Цель аналитиков',analysts:'Аналитики',rec:'Консенсус',earnings:'Ближ. отчёт',sector:'Сектор',employees:'Сотрудники',aiCta:'Хотите умный ИИ-анализ этой акции?',aiCtaNoKey:'Подключите ИИ бесплатно (2 мин) и получите полный анализ',btnAnalyze:'▶ ИИ Анализ',btnConnect:'⚙ Подключить ИИ',forex:'💱 Валюты',crypto:'₿ Крипто',preMarket:'Премаркет',postMarket:'Постмаркет',marketOpen:'● Рынок открыт',marketClosed:'○ Рынок закрыт',dataErr:'Ошибка загрузки — попробуйте снова',disclaimer:'⚠ Данные получены из внешних источников (Yahoo Finance и др.) и показаны для удобства. Возможны задержки и неточности. Проверяйте данные в официальных источниках. Приложение и разработчики не несут ответственности.',newsTitle:'📰 Последние новости',tabOverview:'Обзор',tabAnalysts:'Аналитики',tabFinance:'Финансы',tabCompany:'Компания',tabNews:'Новости',insiderT:'👤 Сделки инсайдеров',margin:'Маржа прибыли',roe:'ROE',revGrowth:'Рост выручки',cash:'Денежные средства',debt:'Долг',fcf:'Свободный поток',insiders:'Инсайдеры %',inst:'Институционалы %',shortF:'Шорт %',ma50:'MA 50 дней',ma200:'MA 200 дней',recTrendT:'Рекомендации аналитиков',earnHistT:'История отчётов EPS',finHistT:'Годовая выручка и прибыль',revenueL:'Выручка',netIncomeL:'Чист. прибыль',lastActionT:'Последнее действие аналитика',sBuy:'Активно покупать',rBuy:'Покупать',rHold:'Держать',rSell:'Продавать',sSell:'Активно продавать',rangeD:'1Д',rangeW:'1Н',rangeM:'1М',range6M:'6М',rangeY:'1Г',range5Y:'5Л'},
+  es:{updated:'Actualizado',open:'Apertura',high:'Máx. día',low:'Mín. día',volume:'Volumen',avgVol:'Vol. promedio',mcap:'Cap. mercado',pe:'P/E',eps:'EPS',beta:'Beta',div:'Dividendo',w52:'Rango 52 sem.',target:'Objetivo analistas',analysts:'Analistas',rec:'Consenso',earnings:'Próx. reporte',sector:'Sector',employees:'Empleados',aiCta:'¿Quieres un análisis IA inteligente?',aiCtaNoKey:'Conecta IA gratis (2 min) y obtén análisis completo',btnAnalyze:'▶ Análisis IA',btnConnect:'⚙ Conectar IA',forex:'💱 Divisas',crypto:'₿ Cripto',preMarket:'Pre-mercado',postMarket:'Post-mercado',marketOpen:'● Mercado abierto',marketClosed:'○ Mercado cerrado',dataErr:'Error al cargar — intenta de nuevo',disclaimer:'⚠ Los datos provienen de fuentes externas (Yahoo Finance y otros) y se muestran solo por conveniencia. Pueden ocurrir retrasos o errores. Verifica con fuentes autorizadas antes de decidir. La app y los desarrolladores no asumen responsabilidad.',newsTitle:'📰 Últimas noticias',tabOverview:'Resumen',tabAnalysts:'Analistas',tabFinance:'Finanzas',tabCompany:'Empresa',tabNews:'Noticias',insiderT:'👤 Transacciones de insiders',margin:'Margen',roe:'ROE',revGrowth:'Crecimiento ingresos',cash:'Efectivo',debt:'Deuda',fcf:'Flujo libre',insiders:'Insiders %',inst:'Institucionales %',shortF:'Corto %',ma50:'MA 50 días',ma200:'MA 200 días',recTrendT:'Recomendaciones de analistas',earnHistT:'Historial EPS',finHistT:'Ingresos y beneficio anual',revenueL:'Ingresos',netIncomeL:'Beneficio neto',lastActionT:'Última acción de analista',sBuy:'Compra fuerte',rBuy:'Comprar',rHold:'Mantener',rSell:'Vender',sSell:'Venta fuerte',rangeD:'1D',rangeW:'1S',rangeM:'1M',range6M:'6M',rangeY:'1A',range5Y:'5A'},
+  ar:{updated:'تحديث',open:'الافتتاح',high:'أعلى اليوم',low:'أدنى اليوم',volume:'الحجم',avgVol:'متوسط الحجم',mcap:'القيمة السوقية',pe:'مكرر الربحية',eps:'ربح السهم',beta:'بيتا',div:'عائد التوزيع',w52:'نطاق 52 أسبوع',target:'هدف المحللين',analysts:'محللون',rec:'الإجماع',earnings:'التقرير القادم',sector:'القطاع',employees:'موظفون',aiCta:'تريد تحليل ذكاء اصطناعي ذكي؟',aiCtaNoKey:'اربط الذكاء الاصطناعي مجاناً (دقيقتان) واحصل على تحليل كامل',btnAnalyze:'▶ تحليل AI',btnConnect:'⚙ ربط AI',forex:'💱 عملات',crypto:'₿ كريبتو',preMarket:'قبل السوق',postMarket:'بعد السوق',marketOpen:'● السوق مفتوح',marketClosed:'○ السوق مغلق',dataErr:'خطأ في التحميل — حاول مجدداً',disclaimer:'⚠ البيانات مأخوذة من مصادر خارجية (Yahoo Finance وغيرها) وتُعرض للراحة فقط. قد تحدث تأخيرات أو أخطاء. تحقق من مصدر معتمد قبل اتخاذ القرار. التطبيق والمطورون غير مسؤولين عن أي ضرر.',newsTitle:'📰 آخر الأخبار',tabOverview:'نظرة عامة',tabAnalysts:'المحللون',tabFinance:'المالية',tabCompany:'الشركة',tabNews:'الأخبار',insiderT:'👤 صفقات المطلعين',margin:'هامش الربح',roe:'العائد على الحقوق',revGrowth:'نمو الإيرادات',cash:'النقد',debt:'الدين',fcf:'التدفق الحر',insiders:'الداخليون %',inst:'المؤسسات %',shortF:'البيع المكشوف %',ma50:'متوسط 50 يوم',ma200:'متوسط 200 يوم',recTrendT:'توصيات المحللين',earnHistT:'سجل تقارير EPS',finHistT:'الإيرادات والربح السنوي',revenueL:'الإيرادات',netIncomeL:'صافي الربح',lastActionT:'آخر إجراء محلل',sBuy:'شراء قوي',rBuy:'شراء',rHold:'احتفاظ',rSell:'بيع',sSell:'بيع قوي',rangeD:'يوم',rangeW:'أسبوع',rangeM:'شهر',range6M:'6ش',rangeY:'سنة',range5Y:'5س'}
+};
+function LT(k){var l=LIVE_T[curLang]||LIVE_T.en;return l[k]||LIVE_T.en[k]||k;}
+
+var currentLiveSymbol='';
+var currentChartRange='1mo';
+var TICKER_SYMBOLS=['AAPL','MSFT','NVDA','TSLA','GOOGL','AMZN','META','NFLX','AMD','INTC','TEVA','CHKP','NICE','MNDY','WIX','CYBR','ESLT','GLBE'];
+
+/* ── TRANSLATION — תרגום נתונים לשפת הממשק ── */
+var __trCache={};
+async function trTexts(texts){
+  if(curLang==='en'||!texts.length)return texts;
+  var need=[],needIdx=[];
+  texts.forEach(function(t,i){
+    if(t&&__trCache[curLang+'|'+t]==null){need.push(t);needIdx.push(i);}
+  });
+  if(need.length){
+    try{
+      var res=await fetch(DATA_WORKER_URL+'/',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'translate',tl:curLang,texts:need})
+      });
+      var data=await res.json();
+      if(data.ok&&data.translations){
+        need.forEach(function(t,j){__trCache[curLang+'|'+t]=data.translations[j]||t;});
+      }
+    }catch(e){need.forEach(function(t){__trCache[curLang+'|'+t]=t;});}
+  }
+  return texts.map(function(t){return (t&&__trCache[curLang+'|'+t])||t;});
+}
+
+/* קונצנזוס אנליסטים — תרגום מקומי מדויק */
+var REC_T={
+  he:{strong_buy:'קנייה חזקה',buy:'קנייה',hold:'החזקה',underperform:'ביצוע חסר',sell:'מכירה',none:'—'},
+  en:{strong_buy:'Strong Buy',buy:'Buy',hold:'Hold',underperform:'Underperform',sell:'Sell',none:'—'},
+  ru:{strong_buy:'Активно покупать',buy:'Покупать',hold:'Держать',underperform:'Ниже рынка',sell:'Продавать',none:'—'},
+  es:{strong_buy:'Compra fuerte',buy:'Comprar',hold:'Mantener',underperform:'Bajo rendimiento',sell:'Vender',none:'—'},
+  ar:{strong_buy:'شراء قوي',buy:'شراء',hold:'احتفاظ',underperform:'أداء ضعيف',sell:'بيع',none:'—'}
+};
+function recLabel(key){var m=REC_T[curLang]||REC_T.en;return m[key]||key||'—';}
+
+/* ── Number formatting ── */
+function fmtNum(n){
+  if(n==null||isNaN(n))return '—';
+  if(Math.abs(n)>=1e12)return (n/1e12).toFixed(2)+'T';
+  if(Math.abs(n)>=1e9)return (n/1e9).toFixed(2)+'B';
+  if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+'M';
+  if(Math.abs(n)>=1e3)return (n/1e3).toFixed(1)+'K';
+  return String(Math.round(n*100)/100);
+}
+function fmtPrice(n,cur){
+  if(n==null||isNaN(n))return '—';
+  var sym=cur==='ILS'?'₪':cur==='EUR'?'€':cur==='GBP'?'£':'$';
+  return sym+(Math.round(n*100)/100).toLocaleString();
+}
+function fmtPct(n){
+  if(n==null||isNaN(n))return '';
+  var v=Math.round(n*100)/100;
+  return (v>=0?'+':'')+v+'%';
+}
+
+/* ── LIVE TICKER — מניות + מדדים, אנימציה שלא נשברת ── */
+async function loadLiveTicker(){
+  try{
+    var results=await Promise.all([
+      fetchLiveTicker(TICKER_SYMBOLS).catch(function(){return null;}),
+      workerFetch('action=indices').catch(function(){return null;})
+    ]);
+    var tickerData=results[0],indicesData=results[1];
+    var items=[];
+    // Indices first (gold color, no click)
+    if(indicesData&&indicesData.indices){
+      indicesData.indices.forEach(function(ix){
+        var color=ix.changePct>=0?'var(--green)':'var(--red)';
+        items.push('<span class="ticker-item"><span style="color:var(--gold)">'+ix.name+'</span> '+fmtNum(ix.price)+' <span style="color:'+color+'">'+fmtPct(ix.changePct)+'</span></span>');
+      });
+    }
+    // Stocks (clickable)
+    if(tickerData&&tickerData.quotes){
+      tickerData.quotes.forEach(function(q){
+        var color=q.changePct>=0?'var(--green)':'var(--red)';
+        items.push('<span class="ticker-item" style="cursor:pointer" onclick="quickLive(\''+q.symbol+'\')">'+q.symbol+' '+fmtPrice(q.price)+' <span style="color:'+color+'">'+fmtPct(q.changePct)+'</span></span>');
+      });
+    }
+    if(!items.length)return;
+    // Duplicate content for seamless 50% loop, then RESTART the animation
+    var track=document.getElementById('tickerTrack');
+    track.style.animation='none';
+    track.innerHTML=items.join('')+items.join('');
+    // Force reflow then re-apply animation — this is what keeps it running forever
+    void track.offsetWidth;
+    var duration=Math.max(30,items.length*4);
+    track.style.animation='ticker '+duration+'s linear infinite';
+  }catch(e){/* keep whatever is showing */}
+}
+
+/* ── LIVE QUOTE CARD ── */
+function quickLive(sym){document.getElementById('stockInput').value=sym;loadLiveData(sym);}
+
+/* ── LIVE CARD TABS — מנוע טאבים ── */
+var LIVE_TAB_DEFS=[
+  ['overview','tabOverview',['lvChartWrap','lvMetrics']],
+  ['analysts','tabAnalysts',['lvAnalyst','lvRecTrend','lvEarnHist','lvLastAction','lvInsiders']],
+  ['finance','tabFinance',['lvFinHist']],
+  ['company','tabCompany',['lvCompany']],
+  ['news','tabNews',['lvNews']]
+];
+var currentLiveTab='overview';
+function sectionHas(id){
+  if(id==='lvChartWrap'||id==='lvMetrics')return true;
+  var el=document.getElementById(id);
+  return !!(el&&el.innerHTML.trim());
+}
+function renderLiveTabs(){
+  var bar=document.getElementById('liveTabs');if(!bar)return;
+  bar.innerHTML='';
+  LIVE_TAB_DEFS.forEach(function(def){
+    // הצג טאב רק אם יש בו תוכן
+    var hasContent=def[2].some(function(id){return sectionHas(id);});
+    if(!hasContent)return;
+    var b=document.createElement('button');
+    b.className='live-tab'+(def[0]===currentLiveTab?' active':'');
+    b.id='ltab-'+def[0];
+    b.textContent=LT(def[1]);
+    b.onclick=(function(t){return function(){switchLiveTab(t);};})(def[0]);
+    bar.appendChild(b);
+  });
+}
+function switchLiveTab(t){currentLiveTab=t;renderLiveTabs();applyLiveTabs();}
+function applyLiveTabs(){
+  LIVE_TAB_DEFS.forEach(function(def){
+    var active=def[0]===currentLiveTab;
+    def[2].forEach(function(id){
+      var el=document.getElementById(id);if(!el)return;
+      var disp=(id==='lvAnalyst')?'flex':(id==='lvMetrics')?'grid':'block';
+      el.style.display=(active&&sectionHas(id))?disp:'none';
+    });
+  });
+}
+
+async function loadLiveData(symbol){
+  symbol=(symbol||'').toUpperCase().trim();
+  if(!symbol)return;
+  currentLiveSymbol=symbol;
+  var card=document.getElementById('liveCard');
+  card.classList.add('visible');
+  document.getElementById('lvSym').textContent=symbol;
+  document.getElementById('lvName').textContent='...';
+  document.getElementById('lvPrice').textContent='...';
+  document.getElementById('lvChange').textContent='';
+  document.getElementById('lvMetrics').innerHTML='';
+  currentLiveTab='overview';
+  ['lvAnalyst','lvCompany','lvNews','lvRecTrend','lvEarnHist','lvFinHist','lvLastAction','lvInsiders'].forEach(function(id){
+    var e=document.getElementById(id);if(e){e.innerHTML='';e.style.display='none';}
+  });
+  try{
+    var q=await fetchLiveQuote(symbol);
+    renderLiveQuote(q);
+    loadLiveChart(symbol,currentChartRange);
+    loadStockNews(symbol);
+  }catch(e){
+    document.getElementById('lvName').textContent=LT('dataErr');
+    document.getElementById('lvPrice').textContent='—';
+  }
+}
+
+/* ── NEWS ── */
+async function loadStockNews(symbol){
+  try{
+    var data=await workerFetch('action=news&symbol='+encodeURIComponent(symbol));
+    if(!data.news||!data.news.length)return;
+    var items=data.news.slice(0,5);
+    // תרגום כותרות החדשות לשפת הממשק
+    if(curLang!=='en'){
+      var titles=items.map(function(n){return n.title||'';});
+      var translated=await trTexts(titles);
+      items.forEach(function(n,i){n.title=translated[i]||n.title;});
+    }
+    var el=document.getElementById('lvNews');
+    var h='<div class="live-news-title">'+LT('newsTitle')+'</div>';
+    items.forEach(function(n){
+      var timeStr='';
+      if(n.time){
+        var mins=Math.floor((Date.now()-new Date(n.time).getTime())/60000);
+        timeStr=mins<60?mins+'m':mins<1440?Math.floor(mins/60)+'h':Math.floor(mins/1440)+'d';
+      }
+      h+='<a class="news-item" href="'+escHtml(n.link)+'" target="_blank" rel="noopener">'
+        +'<div class="news-title">'+escHtml(n.title)+'</div>'
+        +'<div class="news-meta">'+escHtml(n.publisher||'')+(timeStr?' · '+timeStr:'')+'</div></a>';
+    });
+    el.innerHTML=h;
+    renderLiveTabs();applyLiveTabs();
+  }catch(e){/* news is optional */}
+}
+
+function renderLiveQuote(q){
+  document.getElementById('lvSym').textContent=q.symbol||currentLiveSymbol;
+  document.getElementById('lvName').textContent=q.name||'';
+  document.getElementById('lvExchange').textContent=q.exchange||'';
+  document.getElementById('lvPrice').textContent=fmtPrice(q.regularPrice,q.currency);
+  var chgEl=document.getElementById('lvChange');
+  var chg=q.regularChange,pct=q.regularChangePct;
+  if(chg!=null){
+    var up=chg>=0;
+    chgEl.textContent=(up?'▲ ':'▼ ')+(up?'+':'')+(Math.round(chg*100)/100)+' ('+fmtPct(pct)+')';
+    chgEl.className='live-change '+(up?'up':'down');
+  }else{chgEl.textContent='';}
+  // Market state + pre/post
+  var stateEl=document.getElementById('lvMarketState');
+  var stateTxt=q.marketState==='REGULAR'?LT('marketOpen'):LT('marketClosed');
+  if(q.preMarketPrice!=null&&q.marketState==='PRE')stateTxt+=' · '+LT('preMarket')+': '+fmtPrice(q.preMarketPrice,q.currency)+' ('+fmtPct(q.preMarketChangePct)+')';
+  if(q.postMarketPrice!=null&&(q.marketState==='POST'||q.marketState==='POSTPOST'||q.marketState==='CLOSED'))stateTxt+=' · '+LT('postMarket')+': '+fmtPrice(q.postMarketPrice,q.currency)+' ('+fmtPct(q.postMarketChangePct)+')';
+  stateEl.textContent=stateTxt;
+  document.getElementById('lvUpdated').textContent=LT('updated')+': '+new Date().toLocaleTimeString();
+  // Metrics grid
+  var m=[];
+  function metric(lbl,val){if(val!=null&&val!=='—')m.push('<div class="live-metric"><div class="live-metric-lbl">'+lbl+'</div><div class="live-metric-val">'+val+'</div></div>');}
+  metric(LT('open'),fmtPrice(q.open,q.currency));
+  metric(LT('high'),fmtPrice(q.dayHigh,q.currency));
+  metric(LT('low'),fmtPrice(q.dayLow,q.currency));
+  metric(LT('volume'),fmtNum(q.volume));
+  metric(LT('avgVol'),fmtNum(q.avgVolume));
+  metric(LT('mcap'),q.marketCap?fmtNum(q.marketCap):null);
+  metric(LT('pe'),q.peRatio?String(Math.round(q.peRatio*100)/100):null);
+  metric(LT('eps'),q.eps?String(Math.round(q.eps*100)/100):null);
+  metric(LT('beta'),q.beta?String(Math.round(q.beta*100)/100):null);
+  metric(LT('div'),q.dividendYield?(Math.round(q.dividendYield*10000)/100)+'%':null);
+  metric(LT('w52'),q.week52Low&&q.week52High?fmtPrice(q.week52Low,q.currency)+' – '+fmtPrice(q.week52High,q.currency):null);
+  metric(LT('earnings'),q.earningsDate||null);
+  // מדדים מתקדמים
+  metric(LT('margin'),q.profitMargins!=null?(Math.round(q.profitMargins*10000)/100)+'%':null);
+  metric(LT('roe'),q.returnOnEquity!=null?(Math.round(q.returnOnEquity*10000)/100)+'%':null);
+  metric(LT('revGrowth'),q.revenueGrowth!=null?(Math.round(q.revenueGrowth*10000)/100)+'%':null);
+  metric(LT('cash'),q.totalCash?fmtNum(q.totalCash):null);
+  metric(LT('debt'),q.totalDebt?fmtNum(q.totalDebt):null);
+  metric(LT('fcf'),q.freeCashflow?fmtNum(q.freeCashflow):null);
+  metric(LT('ma50'),q.ma50?fmtPrice(q.ma50,q.currency):null);
+  metric(LT('ma200'),q.ma200?fmtPrice(q.ma200,q.currency):null);
+  metric(LT('insiders'),q.heldInsiders!=null?(Math.round(q.heldInsiders*10000)/100)+'%':null);
+  metric(LT('inst'),q.heldInstitutions!=null?(Math.round(q.heldInstitutions*10000)/100)+'%':null);
+  metric(LT('shortF'),q.shortPctFloat!=null?(Math.round(q.shortPctFloat*10000)/100)+'%':null);
+  document.getElementById('lvMetrics').innerHTML=m.join('');
+  // ── פילוח המלצות אנליסטים ──
+  var rtEl=document.getElementById('lvRecTrend');
+  if(q.recTrend){
+    var rt=q.recTrend;
+    var total=rt.strongBuy+rt.buy+rt.hold+rt.sell+rt.strongSell;
+    if(total>0){
+      var segs=[[rt.strongBuy,'#2e7d4f',LT('sBuy')],[rt.buy,'#4caf72',LT('rBuy')],[rt.hold,'#c9a84c',LT('rHold')],[rt.sell,'#cf4a4a',LT('rSell')],[rt.strongSell,'#8b2020',LT('sSell')]];
+      var bar='',leg='';
+      segs.forEach(function(s){
+        if(s[0]>0)bar+='<div class="rec-seg" style="width:'+(s[0]/total*100)+'%;background:'+s[1]+'"></div>';
+        if(s[0]>0)leg+='<span><span class="rec-dot" style="background:'+s[1]+'"></span>'+s[2]+': '+s[0]+'</span>';
+      });
+      rtEl.innerHTML='<div class="rec-trend-title">'+LT('recTrendT')+' ('+total+')</div><div class="rec-bar">'+bar+'</div><div class="rec-legend">'+leg+'</div>';
+      rtEl.style.display='block';
+    }else rtEl.style.display='none';
+  }else rtEl.style.display='none';
+  // ── היסטוריית דוחות EPS ──
+  var ehEl=document.getElementById('lvEarnHist');
+  if(q.earningsHist&&q.earningsHist.length){
+    var chips='';
+    q.earningsHist.forEach(function(e){
+      var beat=e.surprisePct!=null&&e.surprisePct>=0;
+      var col=e.surprisePct==null?'var(--text-dim)':beat?'var(--green)':'var(--red)';
+      chips+='<div class="earn-chip"><div class="earn-q">'+escHtml(e.q||'')+'</div>'
+        +'<div class="earn-val" style="color:'+col+'">'+(e.actual!=null?e.actual:'—')+'</div>'
+        +(e.surprisePct!=null?'<div class="earn-sur" style="color:'+col+'">'+(beat?'▲':'▼')+' '+Math.abs(Math.round(e.surprisePct*10000)/100)+'%</div>':'')
+        +'</div>';
+    });
+    ehEl.innerHTML='<div class="rec-trend-title">'+LT('earnHistT')+'</div><div class="earn-chips">'+chips+'</div>';
+    ehEl.style.display='block';
+  }else ehEl.style.display='none';
+  // ── הכנסות ורווח שנתי ──
+  var fhEl=document.getElementById('lvFinHist');
+  if(q.financialHist&&q.financialHist.length){
+    var maxV=0;
+    q.financialHist.forEach(function(y){maxV=Math.max(maxV,Math.abs(y.revenue||0),Math.abs(y.netIncome||0));});
+    if(maxV>0){
+      var bars='';
+      q.financialHist.forEach(function(y){
+        var rh=Math.max(2,Math.round((y.revenue||0)/maxV*70));
+        var nv=y.netIncome||0;
+        var nh=Math.max(2,Math.round(Math.abs(nv)/maxV*70));
+        var nc=nv>=0?'var(--green)':'var(--red)';
+        bars+='<div class="fin-year"><div class="fin-bar-pair">'
+          +'<div class="fin-bar" style="height:'+rh+'px;background:var(--gold-dim)" title="'+fmtNum(y.revenue)+'"></div>'
+          +'<div class="fin-bar" style="height:'+nh+'px;background:'+nc+'" title="'+fmtNum(nv)+'"></div>'
+          +'</div><div class="fin-year-lbl">'+escHtml(y.year||'')+'</div></div>';
+      });
+      fhEl.innerHTML='<div class="rec-trend-title">'+LT('finHistT')+'</div><div class="fin-bars">'+bars+'</div>'
+        +'<div class="fin-legend"><span><span class="rec-dot" style="background:var(--gold-dim)"></span>'+LT('revenueL')+'</span><span><span class="rec-dot" style="background:var(--green)"></span>'+LT('netIncomeL')+'</span></div>';
+      fhEl.style.display='block';
+    }else fhEl.style.display='none';
+  }else fhEl.style.display='none';
+  // ── פעולת אנליסט אחרונה ──
+  var laEl=document.getElementById('lvLastAction');
+  if(q.lastAction&&q.lastAction.firm){
+    var la=q.lastAction;
+    laEl.innerHTML='<strong>'+LT('lastActionT')+':</strong> '+escHtml(la.firm)+' — '+escHtml(la.toGrade||la.action)+(la.fromGrade&&la.fromGrade!==la.toGrade?' ('+escHtml(la.fromGrade)+' ← )':'')+(la.date?' · '+la.date:'');
+    laEl.style.display='block';
+  }else laEl.style.display='none';
+  // ── עסקאות בעלי עניין ──
+  var inEl=document.getElementById('lvInsiders');
+  if(inEl&&q.insiderTx&&q.insiderTx.length){
+    var irows='';
+    q.insiderTx.forEach(function(t){
+      var isBuy=/buy|purchase|acqui/i.test(t.text||'');
+      var isSell=/sale|sell|dispos/i.test(t.text||'');
+      var icol=isBuy?'var(--green)':isSell?'var(--red)':'var(--text-dim)';
+      irows+='<div style="padding:8px 0;border-bottom:1px solid rgba(128,128,128,.08);font-size:11px;line-height:1.6;">'
+        +'<strong style="color:var(--text)">'+escHtml(t.name)+'</strong>'
+        +(t.relation?' <span style="color:var(--text-muted)">· '+escHtml(t.relation)+'</span>':'')
+        +'<br><span style="color:'+icol+'">'+escHtml(t.text||'—')+'</span>'
+        +(t.shares?' <span style="color:var(--text-dim)">· '+fmtNum(t.shares)+'</span>':'')
+        +(t.value?' <span style="color:var(--text-dim)">· '+fmtPrice(t.value)+'</span>':'')
+        +(t.date?' <span style="color:var(--text-muted)">· '+escHtml(t.date)+'</span>':'')
+        +'</div>';
+    });
+    inEl.innerHTML='<div class="rec-trend-title">'+LT('insiderT')+'</div>'+irows;
+  }
+  // Analyst row
+  var an=document.getElementById('lvAnalyst');
+  if(q.targetMean||q.recommendationKey){
+    var recColors={strong_buy:'var(--green)',buy:'var(--green)',hold:'var(--gold)',underperform:'var(--red)',sell:'var(--red)'};
+    var recNames={strong_buy:'Strong Buy',buy:'Buy',hold:'Hold',underperform:'Underperform',sell:'Sell'};
+    var h='';
+    if(q.targetMean)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('target')+'</div><div class="live-analyst-val" style="color:var(--gold)">'+fmtPrice(q.targetMean,q.currency)+(q.targetLow&&q.targetHigh?' <span style="font-size:9px;color:var(--text-muted)">('+fmtPrice(q.targetLow,q.currency)+'–'+fmtPrice(q.targetHigh,q.currency)+')</span>':'')+'</div></div>';
+    if(q.recommendationKey)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('rec')+'</div><div class="live-analyst-val" style="color:'+(recColors[q.recommendationKey]||'var(--text)')+'">'+recLabel(q.recommendationKey)+'</div></div>';
+    if(q.numberOfAnalysts)h+='<div class="live-analyst-item"><div class="live-analyst-lbl">'+LT('analysts')+'</div><div class="live-analyst-val">'+q.numberOfAnalysts+'</div></div>';
+    an.innerHTML=h;an.style.display='flex';
+  }else{an.style.display='none';}
+  // Company info
+  var co=document.getElementById('lvCompany');
+  if(q.sector||q.description){
+    var renderCompany=function(sector,industry,desc){
+      var ch='';
+      if(sector)ch+='<strong>'+LT('sector')+':</strong> '+escHtml(sector)+(industry?' · '+escHtml(industry):'');
+      if(q.employees)ch+=' · <strong>'+LT('employees')+':</strong> '+fmtNum(q.employees);
+      if(desc)ch+='<br>'+escHtml(desc)+'...';
+      co.innerHTML=ch;
+      renderLiveTabs();applyLiveTabs();
+    };
+    renderCompany(q.sector,q.industry,q.description);
+    // תרגום לשפת הממשק (אסינכרוני — מתעדכן כשהתרגום חוזר)
+    if(curLang!=='en'){
+      var toTr=[q.sector||'',q.industry||'',q.description||''];
+      trTexts(toTr).then(function(tr){renderCompany(tr[0]||q.sector,tr[1]||q.industry,tr[2]||q.description);});
+    }
+  }else{co.style.display='none';}
+  // AI CTA
+  var cfg=loadAIConfig();
+  document.getElementById('lvAiCtaText').textContent=cfg.provider?LT('aiCta'):LT('aiCtaNoKey');
+  var btn=document.getElementById('btnAiFromLive');
+  btn.textContent=cfg.provider?LT('btnAnalyze'):LT('btnConnect');
+  btn.onclick=cfg.provider?function(){analyzeStock(currentLiveSymbol);}:function(){openSetup();};
+  // בניית הטאבים אחרי שכל הסקציות רונדרו
+  renderLiveTabs();applyLiveTabs();
+  // store quote for AI injection
+  window.__lastLiveQuote=q;
+}
+
+/* ── CHART ── */
+var CHART_RANGES=[['1d','rangeD'],['5d','rangeW'],['1mo','rangeM'],['6mo','range6M'],['1y','rangeY'],['5y','range5Y']];
+function renderChartRanges(){
+  var el=document.getElementById('chartRanges');el.innerHTML='';
+  CHART_RANGES.forEach(function(r){
+    var b=document.createElement('button');
+    b.className='chart-range-btn'+(r[0]===currentChartRange?' active':'');
+    b.textContent=LT(r[1]);
+    b.onclick=function(){currentChartRange=r[0];renderChartRanges();if(currentLiveSymbol)loadLiveChart(currentLiveSymbol,r[0]);};
+    el.appendChild(b);
+  });
+}
+async function loadLiveChart(symbol,range){
+  var loading=document.getElementById('chartLoading');
+  loading.style.display='flex';loading.textContent='◈ ...';
+  try{
+    var data=await fetchLiveChart(symbol,range);
+    drawChart(data.points||[],data.previousClose);
+    loading.style.display='none';
+  }catch(e){loading.textContent=LT('dataErr');}
+}
+function drawChart(points,prevClose){
+  var canvas=document.getElementById('liveChart');
+  var wrap=canvas.parentElement;
+  var dpr=window.devicePixelRatio||1;
+  var W=wrap.clientWidth,H=wrap.clientHeight;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  if(!points.length)return;
+  var vals=points.map(function(p){return p[1];});
+  var min=Math.min.apply(null,vals),max=Math.max.apply(null,vals);
+  if(min===max){min-=1;max+=1;}
+  var pad=(max-min)*0.08;min-=pad;max+=pad;
+  var isUp=vals[vals.length-1]>=vals[0];
+  var lineColor=isUp?'#4caf72':'#cf4a4a';
+  var mL=8,mR=54,mT=8,mB=18;
+  var cw=W-mL-mR,chh=H-mT-mB;
+  function px(i){return mL+(i/(points.length-1))*cw;}
+  function py(v){return mT+(1-(v-min)/(max-min))*chh;}
+  // grid lines + right axis labels
+  ctx.strokeStyle='rgba(128,128,128,0.12)';ctx.fillStyle='rgba(150,140,110,0.7)';
+  ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='left';
+  for(var g=0;g<=3;g++){
+    var gv=min+(max-min)*(g/3);var gy=py(gv);
+    ctx.beginPath();ctx.moveTo(mL,gy);ctx.lineTo(mL+cw,gy);ctx.stroke();
+    ctx.fillText(String(Math.round(gv*100)/100),mL+cw+5,gy+3);
+  }
+  // prev close dashed line
+  if(prevClose!=null&&prevClose>min&&prevClose<max){
+    ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(201,168,76,0.4)';
+    ctx.beginPath();ctx.moveTo(mL,py(prevClose));ctx.lineTo(mL+cw,py(prevClose));ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // gradient fill
+  var grad=ctx.createLinearGradient(0,mT,0,mT+chh);
+  grad.addColorStop(0,isUp?'rgba(76,175,114,0.22)':'rgba(207,74,74,0.22)');
+  grad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath();ctx.moveTo(px(0),py(vals[0]));
+  for(var i=1;i<points.length;i++)ctx.lineTo(px(i),py(vals[i]));
+  ctx.lineTo(px(points.length-1),mT+chh);ctx.lineTo(px(0),mT+chh);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  // line
+  ctx.beginPath();ctx.moveTo(px(0),py(vals[0]));
+  for(var j=1;j<points.length;j++)ctx.lineTo(px(j),py(vals[j]));
+  ctx.strokeStyle=lineColor;ctx.lineWidth=1.8;ctx.stroke();
+  // last point dot
+  ctx.beginPath();ctx.arc(px(points.length-1),py(vals[vals.length-1]),3,0,Math.PI*2);
+  ctx.fillStyle=lineColor;ctx.fill();
+  // time labels (first + last)
+  var isIntra=(currentChartRange==='1d'||currentChartRange==='5d');
+  ctx.fillStyle='rgba(150,140,110,0.6)';ctx.textAlign='left';
+  var d0=new Date(points[0][0]*1000),d1=new Date(points[points.length-1][0]*1000);
+  function lbl(d){return isIntra?d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'):(d.getMonth()+1)+'/'+(''+d.getFullYear()).slice(2);}
+  ctx.fillText(lbl(d0),mL,H-4);
+  ctx.textAlign='right';ctx.fillText(lbl(d1),mL+cw,H-4);
+}
+
+/* ── FOREX + CRYPTO ── */
+var fxTab='forex',fxData=null,cryptoData=null;
+function switchFxTab(tab){
+  fxTab=tab;
+  document.getElementById('fxtab-forex').classList.toggle('active',tab==='forex');
+  document.getElementById('fxtab-crypto').classList.toggle('active',tab==='crypto');
+  renderFx();
+}
+async function loadFxData(){
+  document.getElementById('fxtab-forex').textContent=LT('forex');
+  document.getElementById('fxtab-crypto').textContent=LT('crypto');
+  try{fxData=await fetchLiveForex();}catch(e){fxData=null;}
+  try{cryptoData=await fetchLiveCrypto();}catch(e){cryptoData=null;}
+  renderFx();
+}
+function renderFx(){
+  var el=document.getElementById('fxContent');
+  if(fxTab==='forex'){
+    if(!fxData){el.innerHTML='<div class="fx-loading">'+LT('dataErr')+'</div>';return;}
+    var r=fxData.rates||{};
+    var pairs=[['USD/ILS',r.ILS],['USD/EUR',r.EUR],['USD/GBP',r.GBP],['EUR/ILS',fxData.eurIls],['USD/JPY',r.JPY],['USD/CHF',r.CHF],['USD/CAD',r.CAD],['USD/RUB',r.RUB]];
+    var h='<div class="fx-grid">';
+    pairs.forEach(function(p){
+      if(p[1]==null)return;
+      h+='<div class="fx-cell"><div class="fx-pair">'+p[0]+'</div><div class="fx-rate">'+(Math.round(p[1]*10000)/10000)+'</div></div>';
+    });
+    h+='</div>';
+    el.innerHTML=h;
+  }else{
+    if(!cryptoData){el.innerHTML='<div class="fx-loading">'+LT('dataErr')+'</div>';return;}
+    var h2='<div class="fx-grid">';
+    (cryptoData.coins||[]).forEach(function(c){
+      var color=c.change24h>=0?'var(--green)':'var(--red)';
+      h2+='<div class="fx-cell"><div class="fx-pair">'+c.symbol+'/USD</div><div class="fx-rate">'+fmtPrice(c.usd)+'</div><div class="fx-chg" style="color:'+color+'">'+fmtPct(c.change24h)+'</div></div>';
+    });
+    h2+='</div>';
+    el.innerHTML=h2;
+  }
+}
+
+/* ── DATA DISCLAIMER ── */
+function renderDataDisclaimer(){
+  document.getElementById('dataDisclaimer').textContent=LT('disclaimer');
+}
+
+window.onload=function(){
+  applyTheme();
+  setLang(curLang);
+  updateWatchCount();
+  updateAIStatus();
+  renderText();
+  renderDataDisclaimer();
+  renderChartRanges();
+  renderHistory();
+  // Live market data — loads immediately, no AI needed
+  loadLiveTicker();
+  loadFxData();
+  // Refresh ticker every 60s, fx every 5min
+  setInterval(loadLiveTicker,60000);
+  setInterval(loadFxData,300000);
+  // Splash: 1.8s then hide
+  setTimeout(function(){
+    var splash=document.getElementById('splash');
+    splash.classList.add('hide');
+    setTimeout(function(){splash.style.display='none';},600);
+  },1800);
+};
+</script>
+</body>
+</html>

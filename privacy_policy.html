@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockAI — מדיניות פרטיות · Privacy Policy</title>
+<style>
+:root{--bg:#050505;--bg2:#0e0e0e;--border:#2a2418;--gold:#c9a84c;--gold-dim:#8a7235;--text:#e8e0cc;--dim:#a39a85;--muted:#6f6755;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif;line-height:1.75;font-size:15px}
+.wrap{max-width:760px;margin:0 auto;padding:28px 20px 60px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:22px}
+.logo{font-family:Georgia,serif;font-size:28px;font-weight:700;color:var(--gold)}
+.sub{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.lang{display:flex;gap:6px}
+.lang button{background:transparent;border:1px solid var(--border);color:var(--dim);padding:6px 12px;cursor:pointer;border-radius:2px;font-size:12px}
+.lang button.on{border-color:var(--gold);color:var(--gold)}
+h1{font-size:22px;color:var(--gold);margin:0 0 6px}
+h2{font-size:15px;color:var(--gold);margin:26px 0 8px;letter-spacing:.5px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px 18px;margin:10px 0}
+ul{padding-inline-start:20px;margin:6px 0}
+li{margin:4px 0;color:var(--text)}
+.muted{color:var(--muted);font-size:12px}
+a{color:var(--gold)}
+.ok{color:#4caf72}
+[data-l]{display:none}
+body.he [data-l=he],body.en [data-l=en]{display:block}
+.back{display:inline-block;margin-top:26px;border:1px solid var(--gold-dim);padding:8px 16px;text-decoration:none;border-radius:2px}
+</style>
+</head>
+<body class="he">
+<div class="wrap">
+  <div class="top">
+    <div><div class="logo">StockAI</div><div class="sub">AppNest</div></div>
+    <div class="lang"><button id="bhe" class="on" onclick="L('he')">עברית</button><button id="ben" onclick="L('en')">English</button></div>
+  </div>
+
+  <div data-l="he">
+    <h1>מדיניות פרטיות</h1>
+    <div class="muted">עודכן: ספטמבר 2026 · גרסת אפליקציה 2.0.0</div>
+
+    <h2>1. בקצרה</h2>
+    <div class="card">
+      <ul>
+        <li class="ok">✓ אין חשבון, אין הרשמה, אין מעקב, אין אנליטיקה ואין פרסומות.</li>
+        <li class="ok">✓ כל הנתונים שלך (רשימת מעקב, תזות, היסטוריה, כרטיס ניקוד) נשמרים <strong>על המכשיר שלך בלבד</strong>.</li>
+        <li class="ok">✓ מפתח ה-AI שלך מוצפן ונשמר מקומית במכשיר ואינו נכלל בגיבויים.</li>
+      </ul>
+    </div>
+
+    <h2>2. מה נשמר על המכשיר</h2>
+    <ul>
+      <li>רשימת המעקב, התזות שכתבת, היסטוריית ניתוחים וכרטיס הניקוד של תחזיות ה-AI.</li>
+      <li>הגדרות: שפה, ערכת תצוגה, שם משתמש (אם הזנת), ספק ה-AI והמודל שבחרת.</li>
+      <li>עותק שמור של נתוני השוק האחרונים שצפית בהם, כדי שהאפליקציה תעבוד גם בלי חיבור.</li>
+      <li>מפתח ה-API של ה-AI — מוצפן (AES-256) ונשמר מקומית. ההצפנה מגינה עליו כשהוא שמור, אך אינה מגינה מפני קוד זדוני שרץ בדפדפן באותו זמן.</li>
+    </ul>
+
+    <h2>3. מה נשלח החוצה ומתי</h2>
+    <div class="card">
+      <strong>נתוני שוק ציבוריים — דרך שירות ביניים.</strong>
+      <p>כדי להציג מחירים, גרפים, חדשות ודיווחים, האפליקציה פונה לשירות ביניים של AppNest (Cloudflare Worker). השירות מקבל רק את <strong>סימול המניה</strong> שביקשת (למשל AAPL), מושך מידע ציבורי ממקורות כמו Yahoo Finance, SEC EDGAR (רשות ניירות הערך האמריקאית), ECB/Frankfurter (שערי מטבע) ו-Google Translate (לתרגום טקסטים ציבוריים), ומחזיר אותו לאפליקציה. <strong>לא נשלח אליו שום מידע אישי, והוא אינו שומר דבר.</strong></p>
+    </div>
+    <div class="card">
+      <strong>בינה מלאכותית — רק אם חיברת מפתח משלך.</strong>
+      <p>כשאתה מבקש ניתוח AI או בדיקת תזה, נתוני המניה, השאלה והתזה שכתבת נשלחים <strong>ישירות מהמכשיר שלך</strong> לספק שבחרת (Anthropic / Google / OpenAI / כתובת מותאמת או AI מקומי) — לא דרך שרתי AppNest. השימוש כפוף למדיניות הפרטיות של אותו ספק. בלי מפתח — לא מתבצעת שום קריאת AI.</p>
+    </div>
+
+    <h2>4. השליטה שלך</h2>
+    <ul>
+      <li>ייצוא גיבוי (JSON) של רשימת המעקב, התזות וכרטיס הניקוד — ללא מפתחות.</li>
+      <li>ייצוא כרטיס הניקוד ל-CSV.</li>
+      <li>ניתוק ה-AI מוחק את המפתח מהמכשיר. מחיקת נתוני האתר בדפדפן מוחקת הכל.</li>
+    </ul>
+
+    <h2>5. אינו ייעוץ השקעות</h2>
+    <p>כל הנתונים, החישובים והניתוחים (כולל של ה-AI) מוצגים למטרות מידע ולימוד בלבד. הנתונים נשאבים ממקורות חיצוניים וייתכנו בהם עיכובים וטעויות. יש לאמת כל נתון מול מקור מוסמך לפני כל החלטה. האפליקציה ומפתחיה אינם אחראים לכל נזק או הפסד.</p>
+
+    <h2>6. יצירת קשר</h2>
+    <p>Barak Aflalo · AppNest · <a href="mailto:appnest55@gmail.com">appnest55@gmail.com</a></p>
+  </div>
+
+  <div data-l="en" dir="ltr" style="text-align:left">
+    <h1>Privacy Policy</h1>
+    <div class="muted">Updated: September 2026 · App version 2.0.0</div>
+
+    <h2>1. In short</h2>
+    <div class="card">
+      <ul>
+        <li class="ok">✓ No account, no sign-up, no tracking, no analytics and no ads.</li>
+        <li class="ok">✓ All your data (watchlist, theses, history, scoreboard) is stored <strong>on your device only</strong>.</li>
+        <li class="ok">✓ Your AI key is encrypted, stored locally on the device and not included in backups.</li>
+      </ul>
+    </div>
+
+    <h2>2. What is stored on the device</h2>
+    <ul>
+      <li>Your watchlist, the theses you wrote, analysis history and the AI prediction scoreboard.</li>
+      <li>Settings: language, display theme, username (if entered), chosen AI provider and model.</li>
+      <li>A saved copy of the latest market data you viewed, so the app also works offline.</li>
+      <li>Your AI API key — encrypted (AES-256) and stored locally. Encryption protects it at rest, but not against malicious code running in the browser at the same time.</li>
+    </ul>
+
+    <h2>3. What is sent out, and when</h2>
+    <div class="card">
+      <strong>Public market data — through a relay service.</strong>
+      <p>To show prices, charts, news and filings, the app contacts an AppNest relay (Cloudflare Worker). It receives only the <strong>stock symbol</strong> you requested (e.g. AAPL), fetches public information from sources such as Yahoo Finance, SEC EDGAR, ECB/Frankfurter (exchange rates) and Google Translate (to translate public texts), and returns it to the app. <strong>No personal data is sent to it, and it stores nothing.</strong></p>
+    </div>
+    <div class="card">
+      <strong>Artificial intelligence — only if you connected your own key.</strong>
+      <p>When you request an AI analysis or a thesis check, the stock data, your question and your thesis are sent <strong>directly from your device</strong> to the provider you chose (Anthropic / Google / OpenAI / a custom endpoint or local AI) — not through AppNest servers. Use is subject to that provider's privacy policy. Without a key, no AI call is made.</p>
+    </div>
+
+    <h2>4. Your control</h2>
+    <ul>
+      <li>Export a backup (JSON) of your watchlist, theses and scoreboard — without keys.</li>
+      <li>Export the scoreboard to CSV.</li>
+      <li>Disconnecting the AI deletes the key from the device. Clearing site data in the browser deletes everything.</li>
+    </ul>
+
+    <h2>5. Not investment advice</h2>
+    <p>All data, calculations and analyses (including AI output) are shown for information and learning only. Data comes from external sources and may be delayed or inaccurate. Verify everything with an authorized source before any decision. The app and its developers are not responsible for any damage or loss.</p>
+
+    <h2>6. Contact</h2>
+    <p>Barak Aflalo · AppNest · <a href="mailto:appnest55@gmail.com">appnest55@gmail.com</a></p>
+  </div>
+
+  <a class="back" href="./">← StockAI</a>
+</div>
+<script>
+function L(l){document.body.className=l;document.documentElement.lang=l;document.documentElement.dir=l==='he'?'rtl':'ltr';document.getElementById('bhe').className=l==='he'?'on':'';document.getElementById('ben').className=l==='en'?'on':'';}
+try{var s=localStorage.getItem('stockai_lang');if(s&&s!=='he')L('en');}catch(e){}
+</script>
+</body>
+</html>

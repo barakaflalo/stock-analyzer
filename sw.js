@@ -2,7 +2,7 @@
 // StockAI Service Worker v3 — Network First
 // תמיד מביא גרסה טרייה מהרשת; מטמון רק כגיבוי לאופליין
 // ═══════════════════════════════════════════════════
-const CACHE_NAME = 'stockai-v7';
+const CACHE_NAME = 'stockai-v8';
 
 // התקנה: השתלט מיד (בלי לחכות לסגירת טאבים ישנים)
 self.addEventListener('install', (event) => {

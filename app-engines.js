@@ -230,13 +230,14 @@ async function loadTechnical(symbol){
   window.__techResult=null;
   try{
     var res=await Promise.all([
-      workerFetch('action=chart&symbol='+encodeURIComponent(symbol)+'&range=1y&interval=1d'),
+      workerFetch('action=chart&symbol='+encodeURIComponent(symbol)+'&range=2y&interval=1d'),
       workerFetch('action=chart&symbol='+encodeURIComponent(symbol)+'&range=5y&interval=1mo').catch(function(){return null;})
     ]);
     if(currentLiveSymbol!==symbol)return;
     var t=computeTechnical(res[0].ohlc),s=res[1]?computeSeasonality(res[1].ohlc):null;
     if(!t&&!s)return;
     window.__techResult={symbol:symbol,tech:t,season:s};
+    window.__techOhlc={symbol:symbol,ohlc:res[0].ohlc};
     var h='';
     if(t){
       var col=sigColor(t.score);

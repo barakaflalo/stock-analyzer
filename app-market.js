@@ -105,13 +105,13 @@ function quickLive(sym){document.getElementById('stockInput').value=sym;loadLive
 /* ── LIVE CARD TABS — מנוע טאבים ── */
 var LIVE_TAB_DEFS=[
   ['overview','tabOverview',['lvChartWrap','lvMetrics']],
-  ['technical','tabTech',['lvTech','lvTv']],
-  ['analysts','tabAnalysts',['lvAnalyst','lvRecTrend','lvEarnHist','lvLastAction','lvInsiders']],
+  ['technical','tabTech',['lvTech','lvTv','lvBacktest']],
+  ['analysts','tabAnalysts',['lvAnalyst','lvEstimates','lvRecTrend','lvEarnHist','lvLastAction','lvInsiders']],
   ['quality','tabQuality',['lvQuality']],
   ['value','tabValue',['lvValue']],
   ['finance','tabFinance',['lvFinHist']],
   ['events','tabEvents',['lvEvents']],
-  ['company','tabCompany',['lvCompany']],
+  ['company','tabCompany',['lvPeers','lvCompany']],
   ['news','tabNews',['lvNews']],
   ['thesis','tabThesis',['lvThesis']]
 ];
@@ -160,7 +160,7 @@ async function loadLiveData(symbol){
   document.getElementById('lvChange').textContent='';
   document.getElementById('lvMetrics').innerHTML='';
   currentLiveTab='overview';
-  ['lvAnalyst','lvCompany','lvNews','lvRecTrend','lvEarnHist','lvFinHist','lvLastAction','lvInsiders','lvTech','lvTv','lvQuality','lvEvents','lvValue','lvThesis'].forEach(function(id){
+  ['lvAnalyst','lvCompany','lvNews','lvRecTrend','lvEarnHist','lvFinHist','lvLastAction','lvInsiders','lvTech','lvTv','lvQuality','lvEvents','lvValue','lvThesis','lvBacktest','lvEstimates','lvPeers'].forEach(function(id){
     var e=document.getElementById(id);if(e){e.innerHTML='';e.style.display='none';}
   });
   var __snap=snapGet(symbol);
@@ -175,7 +175,7 @@ async function loadLiveData(symbol){
     loadStockNews(symbol);
     renderValuation(symbol,q);renderThesis(symbol);
     // מנועי ניתוח — טכני, איכות, אירועים (חינמי, בלי AI)
-    window.__extrasPromise=Promise.allSettled([loadTechnical(symbol).then(function(){return loadTvRating(symbol);}),loadQuality(symbol,q),loadEvents(symbol,q)]);
+    window.__extrasPromise=Promise.allSettled([loadTechnical(symbol).then(function(){renderBacktest(symbol);return loadTvRating(symbol);}),loadQuality(symbol,q),loadEvents(symbol,q),loadPeers(symbol)]);
   }catch(e){
     if(__snap){document.getElementById('lvUpdated').textContent=P4('offline',{t:fmtTime(__snap.ts)});}
     else{document.getElementById('lvName').textContent=LT('dataErr');document.getElementById('lvPrice').textContent='—';}

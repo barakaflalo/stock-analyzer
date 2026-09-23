@@ -106,10 +106,10 @@ function quickLive(sym){document.getElementById('stockInput').value=sym;loadLive
 var LIVE_TAB_DEFS=[
   ['overview','tabOverview',['lvChartWrap','lvMetrics']],
   ['technical','tabTech',['lvTech','lvTv','lvBacktest']],
-  ['analysts','tabAnalysts',['lvAnalyst','lvEstimates','lvRecTrend','lvEarnHist','lvLastAction','lvInsiders']],
+  ['analysts','tabAnalysts',['lvAnalyst','lvEstimates','lvHolders','lvRecTrend','lvEarnHist','lvLastAction','lvInsiders']],
   ['quality','tabQuality',['lvQuality']],
   ['value','tabValue',['lvValue']],
-  ['finance','tabFinance',['lvFinHist']],
+  ['finance','tabFinance',['lvFinHist','lvDividends']],
   ['events','tabEvents',['lvEvents']],
   ['company','tabCompany',['lvPeers','lvCompany']],
   ['news','tabNews',['lvNews']],
@@ -160,7 +160,7 @@ async function loadLiveData(symbol){
   document.getElementById('lvChange').textContent='';
   document.getElementById('lvMetrics').innerHTML='';
   currentLiveTab='overview';
-  ['lvAnalyst','lvCompany','lvNews','lvRecTrend','lvEarnHist','lvFinHist','lvLastAction','lvInsiders','lvTech','lvTv','lvQuality','lvEvents','lvValue','lvThesis','lvBacktest','lvEstimates','lvPeers'].forEach(function(id){
+  ['lvAnalyst','lvCompany','lvNews','lvRecTrend','lvEarnHist','lvFinHist','lvLastAction','lvInsiders','lvTech','lvTv','lvQuality','lvEvents','lvValue','lvThesis','lvBacktest','lvEstimates','lvPeers','lvDividends','lvHolders'].forEach(function(id){
     var e=document.getElementById(id);if(e){e.innerHTML='';e.style.display='none';}
   });
   var __snap=snapGet(symbol);
@@ -175,7 +175,7 @@ async function loadLiveData(symbol){
     loadStockNews(symbol);
     renderValuation(symbol,q);renderThesis(symbol);
     // מנועי ניתוח — טכני, איכות, אירועים (חינמי, בלי AI)
-    window.__extrasPromise=Promise.allSettled([loadTechnical(symbol).then(function(){if(typeof renderBacktest==='function')renderBacktest(symbol);return typeof loadTvRating==='function'?loadTvRating(symbol):null;}),loadQuality(symbol,q),loadEvents(symbol,q),typeof loadPeers==='function'?loadPeers(symbol):null]);
+    window.__extrasPromise=Promise.allSettled([loadTechnical(symbol).then(function(){if(typeof renderBacktest==='function')renderBacktest(symbol);return typeof loadTvRating==='function'?loadTvRating(symbol):null;}),loadQuality(symbol,q),loadEvents(symbol,q),typeof loadPeers==='function'?loadPeers(symbol):null,typeof loadDividends==='function'?loadDividends(symbol):null]);
   }catch(e){
     if(__snap){document.getElementById('lvUpdated').textContent=P4('offline',{t:fmtTime(__snap.ts)});}
     else{document.getElementById('lvName').textContent=LT('dataErr');document.getElementById('lvPrice').textContent='—';}

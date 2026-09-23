@@ -3,7 +3,7 @@
 // כל קבצי האפליקציה נבדקים מול השרת בכל טעינה (ETag — זול ומהיר),
 // כך שלא יכולות להיטען גרסאות מעורבבות. מטמון רק כגיבוי לאופליין.
 // ═══════════════════════════════════════════════════
-const CACHE_NAME = 'stockai-v9';
+const CACHE_NAME = 'stockai-v10';
 
 self.addEventListener('install', () => { self.skipWaiting(); });
 

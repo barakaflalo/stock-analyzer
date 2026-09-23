@@ -73,10 +73,10 @@ function rerenderForLanguage(){
   try{renderHistory();}catch(e){}
 }
 buildAssistantConfig();
-var __origSetLang=setLang;setLang=function(l){__origSetLang(l);try{rerenderForLanguage();}catch(e){}try{a11yLabels();p5Labels();lsBadge();if(document.getElementById('marketOverlay').classList.contains('open'))renderMarket();if(document.getElementById('tourOverlay').classList.contains('open'))renderTour();buildAssistantConfig();if(document.getElementById('scoreOverlay').classList.contains('open'))renderScoreboard();}catch(e){}};
+var __origSetLang=setLang;setLang=function(l){__origSetLang(l);try{document.documentElement.lang=l;document.documentElement.dir=(l==='he'||l==='ar')?'rtl':'ltr';}catch(e){}try{rerenderForLanguage();}catch(e){}try{a11yLabels();p5Labels();p7Labels();lsBadge();if(document.getElementById('marketOverlay').classList.contains('open'))renderMarket();if(document.getElementById('tourOverlay').classList.contains('open'))renderTour();buildAssistantConfig();if(document.getElementById('scoreOverlay').classList.contains('open'))renderScoreboard();}catch(e){}};
 
 /* בדיקה עצמית — אם קובץ לא נטען (למשל גרסאות מעורבבות מהמטמון), מציגים פס רענון במקום כפתורים מתים */
-var APP_MODULES=['app-i18n','app-core','app-ai','app-ui','app-market','app-engines','app-value','app-platform','app-live','app-insights','app-init'];
+var APP_MODULES=['app-i18n','app-core','app-ai','app-ui','app-market','app-engines','app-value','app-platform','app-live','app-insights','app-portfolio','app-init'];
 function moduleCheck(){
   var miss=APP_MODULES.filter(function(m){return !(window.__MODS&&window.__MODS[m]);});
   if(!miss.length)return;
@@ -101,6 +101,7 @@ window.onload=function(){
   renderHistory();
   a11yLabels();
   p5Labels();
+  p7Labels();
   setTimeout(lsConnect,2500);
   setTimeout(maybeStartTour,2400);
   // Live market data — loads immediately, no AI needed

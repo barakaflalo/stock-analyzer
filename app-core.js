@@ -979,7 +979,7 @@ async function analyzeAllWatchlist(){
 
 /* Export/Import */
 function exportWatchlist(){
-  var data=JSON.stringify({app:'StockAI',version:APP_VERSION,user:getUsername(),stockai_watchlist:loadWatchlist(),stockai_thesis:thLoad(),stockai_scoreboard:sbLoad(),exported:new Date().toISOString()},null,2);
+  var data=JSON.stringify({app:'StockAI',version:APP_VERSION,user:getUsername(),stockai_watchlist:loadWatchlist(),stockai_thesis:thLoad(),stockai_scoreboard:sbLoad(),stockai_portfolio:pfLoad(),stockai_alerts:alLoad(),exported:new Date().toISOString()},null,2);
   var blob=new Blob([data],{type:'application/json'});var url=URL.createObjectURL(blob);
   var a=document.createElement('a');a.href=url;a.download='stockai-watchlist.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   showToastMsg(T('backupExport')+' ✓');
@@ -991,6 +991,8 @@ function handleImport(e){
   reader.onload=function(ev){
     try{
       var data=JSON.parse(ev.target.result);var imported=data.stockai_watchlist||data;
+      if(Array.isArray(data.stockai_portfolio)&&!pfLoad().length)pfSave(data.stockai_portfolio);
+      if(Array.isArray(data.stockai_alerts)){var al=alLoad(),aids=al.map(function(x){return x.id;});data.stockai_alerts.forEach(function(x){if(x&&x.id&&aids.indexOf(x.id)<0)al.push(x);});alSave(al);}
       if(Array.isArray(data.stockai_scoreboard)){var sb=sbLoad(),ids=sb.map(function(x){return x.id;});data.stockai_scoreboard.forEach(function(x){if(x&&x.id&&ids.indexOf(x.id)<0)sb.push(x);});sb.sort(function(a,b){return a.id-b.id;});sbSave(sb);}
       if(data.stockai_thesis&&typeof data.stockai_thesis==='object'){var th=thLoad();for(var ks in data.stockai_thesis){if(!th[ks])th[ks]=data.stockai_thesis[ks];}thSaveAll(th);}
       if(Array.isArray(imported)){var ex=loadWatchlist();imported.forEach(function(s){if(ex.indexOf(s)===-1)ex.push(s);});saveWatchlist(ex);renderWatchlist();showToastMsg(T('backupImport')+' ✓');}

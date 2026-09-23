@@ -4,7 +4,7 @@
    PHASE 4 — לפי מסמך הדרישות AppNest v10
    כרטיס ניקוד · השלמה אוטומטית · מטמון מיידי · הצפנת מפתחות · אודות · אבחון · נגישות
 ══════════════════════════════════════════════════════════════ */
-var APP_VERSION='2.2.1';
+var APP_VERSION='2.3.0';
 var P4_T={
 he:{sbBtn:"📊 ניקוד AI",sbT:"📊 כרטיס ניקוד — כמה ה-AI צודק?",sbSummary:"ה-AI צדק ב-{h} מתוך {n} תחזיות שנבדקו",sbRate:"שיעור הצלחה",sbTotal:"תחזיות",sbPending:"ממתינות",sbAvgBuy:"תשואה ממוצעת להמלצות קנייה",sbEmpty:"עדיין אין תחזיות. כל ניתוח AI נשמר כאן אוטומטית עם המחיר והתאריך — ואחרי שבוע אפשר לראות אם צדק.",sbRule:"כלל הבדיקה (אחרי 7 ימים לפחות): קנייה = המחיר עלה · מכירה = המחיר ירד · החזקה = שינוי קטן מ-5%.",sbSince:"מאז",sbEntry:"מחיר בעת התחזית",sbNow:"עכשיו",sbHit:"✓ צדק",sbMiss:"✗ טעה",sbWait:"⏳ {n} ימים לבדיקה",sbTarget:"🎯 הגיע ליעד",sbRefresh:"🔄 רענן מחירים",sbCsv:"⬇ ייצוא CSV",sbClear:"🗑 נקה הכל",sbClearQ:"למחוק את כל היסטוריית התחזיות?",sbDelQ:"למחוק את התחזית הזו?",sbNote:"תחזית אחת לכל מניה ביום (ניתוח חוזר באותו יום מעדכן אותה). ביצועי עבר אינם מבטיחים ביצועים עתידיים.",
 recBUY:"קנייה",recSELL:"מכירה",recHOLD:"החזקה",
@@ -291,6 +291,7 @@ function startupChecks(){
 }
 
 /* ══ 8. APPNEST ASSISTANT — המפה של StockAI (המנוע עצמו: appnest-assistant.js) ══ */
+function assistantInputSym(){var el=document.getElementById('stockInput');return el?String(el.value||'').toUpperCase().trim():'';}
 function assistantSym(a){var s=typeof a==='string'?a:(a&&(a.symbol||a.value||a.arg||a.ticker))||'';return String(s).toUpperCase().trim();}
 var ASSIST_SUGG={
   he:['נתח לי את PLX','מה אומר הטאב הטכני על המניה הזו?','מה זה מבחן האיכות?','כמה ה-AI צדק עד עכשיו?'],
@@ -303,11 +304,11 @@ function buildAssistantConfig(){
   window.APPNEST_ASSISTANT_CONFIG={
     appName:'StockAI',
     appDescription:'StockAI is a stock-analysis app for US and Israeli markets. Typing a symbol loads a free live data card with tabs: Overview (chart, metrics), Technical (composite signal, RSI/ADX/Bollinger/OBV, candlestick patterns, volatility, seasonality), Analysts, Quality (7-metric screen), Value (fair-value calculator with scenarios and implied growth), Financials, Events (SEC filings, next earnings), Company, News, and My Thesis (a personal thesis journal with AI drift check). AI analysis (user\'s own key) runs a 4-masters committee and every prediction is tracked on a Scoreboard. Help the user understand the data and navigate. IMPORTANT: everything is informational only, not investment advice — say so when giving opinions and suggest verifying with an authorized source. Answer in the user\'s language.',
-    tabs:[{name:'Overview',screen:'overview'},{name:'Technical',screen:'technical'},{name:'Analysts',screen:'analysts'},{name:'Quality',screen:'quality'},{name:'Value',screen:'value'},{name:'Financials',screen:'finance'},{name:'Events',screen:'events'},{name:'Company',screen:'company'},{name:'News',screen:'news'},{name:'My Thesis',screen:'thesis'},{name:'Scoreboard',screen:'scoreboard'},{name:'Watchlist',screen:'watchlist'},{name:'AI settings',screen:'settings'},{name:'Guide',screen:'guide'},{name:'About',screen:'about'}],
-    fields:[],
-    readAiConfig:function(){var c=loadAIConfig();return {provider:c.provider,keys:{gemini:c.geminiKey||'',claude:c.claudeKey||'',openai:c.openaiKey||'',custom:c.customKey||''},deviceUrl:c.deviceUrl,customUrl:c.customUrl};},
+    tabs:[{name:'Overview',screen:'overview'},{name:'Technical',screen:'technical'},{name:'Analysts',screen:'analysts'},{name:'Quality',screen:'quality'},{name:'Value',screen:'value'},{name:'Financials',screen:'finance'},{name:'Events',screen:'events'},{name:'Company',screen:'company'},{name:'News',screen:'news'},{name:'My Thesis',screen:'thesis'},{name:'Scoreboard',screen:'scoreboard'},{name:'Portfolio',screen:'portfolio'},{name:'Price alerts',screen:'alerts'},{name:'Watchlist',screen:'watchlist'},{name:'AI settings',screen:'settings'},{name:'Guide',screen:'guide'},{name:'About',screen:'about'}],
+    fields:[{name:'symbol',label:'Stock symbol',placeholder:'AAPL / TSLA'}],
+    readAiConfig:function(){var c=loadAIConfig();return {provider:c.provider,keys:{gemini:c.geminiKey||'',claude:c.claudeKey||'',openai:c.openaiKey||'',customKey:c.customKey||'',customUrl:c.customUrl||'',deviceUrl:c.deviceUrl||''}};},
     navigate:function(t){var s=String((t&&(t.screen||t.name))||t||'').toLowerCase();
-      if(s==='scoreboard')return openScoreboard();if(s==='watchlist')return openWatchPanel();if(s==='settings')return openSetup();if(s==='guide')return openGuide();if(s==='about')return openAbout();
+      if(s==='scoreboard')return openScoreboard();if(s==='portfolio')return openPortfolio('pf');if(s==='alerts')return openPortfolio('al');if(s==='watchlist')return openWatchPanel();if(s==='settings')return openSetup();if(s==='guide')return openGuide();if(s==='about')return openAbout();
       if(LIVE_TAB_DEFS.some(function(d){return d[0]===s;})){switchLiveTab(s);var c=document.getElementById('liveCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});}},
     readState:function(){var q=window.__lastLiveQuote,out=[];
       if(q)out.push('Current stock: '+q.symbol+' ('+(q.name||'')+') price '+q.regularPrice+' '+(q.currency||'')+', today '+fmtPct(q.regularChangePct)+'. Open tab: '+currentLiveTab+'.');
@@ -316,10 +317,14 @@ function buildAssistantConfig(){
       var sb=sbLoad();out.push('Scoreboard: '+sb.length+' saved AI predictions. Watchlist: '+loadWatchlist().join(', ')+'.');
       return out.join(' ');},
     actions:{
-      loadStock:{desc:'Load the free live data card for a stock symbol (arg: symbol, e.g. "AAPL")',run:function(a){var s=assistantSym(a);if(s){document.getElementById('stockInput').value=s;loadLiveData(s);}}},
-      analyzeStock:{desc:'Run the full AI analysis for a symbol (arg: symbol)',run:function(a){var s=assistantSym(a);if(s){document.getElementById('stockInput').value=s;analyzeStock(s);}}},
-      addToWatchlist:{desc:'Add a symbol to the watchlist (arg: symbol)',run:function(a){var s=assistantSym(a);if(s)addToWatchlist(s);}},
-      openScoreboard:{desc:'Open the AI prediction scoreboard',run:function(){openScoreboard();}}
+      loadStock:{desc:'Load the free live data card for the symbol in the "symbol" field (first writeField "symbol", then run this)',done:'✓',run:function(){var s=assistantInputSym();if(s)loadLiveData(s);}},
+      analyzeStock:{desc:'Run the full AI analysis for the symbol in the "symbol" field (first writeField "symbol")',done:'✓',run:function(){var s=assistantInputSym();if(s)analyzeStock(s);}},
+      addToWatchlist:{desc:'Add the symbol in the "symbol" field to the watchlist',done:'✓',run:function(){var s=assistantInputSym();if(s)addToWatchlist(s);}},
+      openPortfolio:{desc:'Open the investment portfolio',run:function(){openPortfolio('pf');}},
+      openAlerts:{desc:'Open the price alerts list',run:function(){openPortfolio('al');}},
+      newAlert:{desc:'Open the price-alert form for the symbol in the "symbol" field',run:function(){openAlertForm(assistantInputSym());}},
+      openScoreboard:{desc:'Open the AI prediction scoreboard',run:function(){openScoreboard();}},
+      openMarket:{desc:'Open the market screen (movers, screener, calendars)',run:function(){openMarket();}}
     },
     suggestions:ASSIST_SUGG[curLang]||ASSIST_SUGG.en
   };

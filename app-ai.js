@@ -304,3 +304,4 @@ function parseAIResponse(text){
   if(start===-1||end===-1)throw new Error('No JSON found in response');
   return JSON.parse(cleaned.substring(start,end+1));
 }
+;(window.__MODS=window.__MODS||{})['app-ai']=1;

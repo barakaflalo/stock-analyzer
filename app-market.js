@@ -175,7 +175,7 @@ async function loadLiveData(symbol){
     loadStockNews(symbol);
     renderValuation(symbol,q);renderThesis(symbol);
     // מנועי ניתוח — טכני, איכות, אירועים (חינמי, בלי AI)
-    window.__extrasPromise=Promise.allSettled([loadTechnical(symbol).then(function(){renderBacktest(symbol);return loadTvRating(symbol);}),loadQuality(symbol,q),loadEvents(symbol,q),loadPeers(symbol)]);
+    window.__extrasPromise=Promise.allSettled([loadTechnical(symbol).then(function(){if(typeof renderBacktest==='function')renderBacktest(symbol);return typeof loadTvRating==='function'?loadTvRating(symbol):null;}),loadQuality(symbol,q),loadEvents(symbol,q),typeof loadPeers==='function'?loadPeers(symbol):null]);
   }catch(e){
     if(__snap){document.getElementById('lvUpdated').textContent=P4('offline',{t:fmtTime(__snap.ts)});}
     else{document.getElementById('lvName').textContent=LT('dataErr');document.getElementById('lvPrice').textContent='—';}
@@ -500,3 +500,4 @@ function renderFx(){
 function renderDataDisclaimer(){
   document.getElementById('dataDisclaimer').textContent=LT('disclaimer');
 }
+;(window.__MODS=window.__MODS||{})['app-market']=1;

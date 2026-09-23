@@ -1028,3 +1028,4 @@ function showStaleBar(sym,ts){
 }
 function hideStaleBar(){document.getElementById('staleBar').classList.remove('visible');}
 function refreshAnalysis(){var sym=document.getElementById('rSym').textContent;if(sym)analyzeStock(sym);}
+;(window.__MODS=window.__MODS||{})['app-core']=1;

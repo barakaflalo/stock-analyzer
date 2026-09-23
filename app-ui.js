@@ -145,3 +145,4 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
 /* ══════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════ */
+;(window.__MODS=window.__MODS||{})['app-ui']=1;

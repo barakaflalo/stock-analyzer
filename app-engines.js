@@ -440,3 +440,4 @@ function renderMasters(r){
   document.getElementById('rMasters').innerHTML=head+'<div class="ms-grid">'+cards+'</div>'+veto;
   sec.style.display='block';
 }
+;(window.__MODS=window.__MODS||{})['app-engines']=1;

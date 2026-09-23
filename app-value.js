@@ -219,3 +219,4 @@ function buildPhase3Context(symbol){
   if(t)out.push('INVESTOR THESIS: '+t.why+(t.kill?' | EXIT IF: '+t.kill:''));
   return out.length?'\n'+out.join('\n')+'\n':'';
 }
+;(window.__MODS=window.__MODS||{})['app-value']=1;

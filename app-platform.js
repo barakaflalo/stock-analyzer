@@ -4,7 +4,7 @@
    PHASE 4 — לפי מסמך הדרישות AppNest v10
    כרטיס ניקוד · השלמה אוטומטית · מטמון מיידי · הצפנת מפתחות · אודות · אבחון · נגישות
 ══════════════════════════════════════════════════════════════ */
-var APP_VERSION='2.2.0';
+var APP_VERSION='2.2.1';
 var P4_T={
 he:{sbBtn:"📊 ניקוד AI",sbT:"📊 כרטיס ניקוד — כמה ה-AI צודק?",sbSummary:"ה-AI צדק ב-{h} מתוך {n} תחזיות שנבדקו",sbRate:"שיעור הצלחה",sbTotal:"תחזיות",sbPending:"ממתינות",sbAvgBuy:"תשואה ממוצעת להמלצות קנייה",sbEmpty:"עדיין אין תחזיות. כל ניתוח AI נשמר כאן אוטומטית עם המחיר והתאריך — ואחרי שבוע אפשר לראות אם צדק.",sbRule:"כלל הבדיקה (אחרי 7 ימים לפחות): קנייה = המחיר עלה · מכירה = המחיר ירד · החזקה = שינוי קטן מ-5%.",sbSince:"מאז",sbEntry:"מחיר בעת התחזית",sbNow:"עכשיו",sbHit:"✓ צדק",sbMiss:"✗ טעה",sbWait:"⏳ {n} ימים לבדיקה",sbTarget:"🎯 הגיע ליעד",sbRefresh:"🔄 רענן מחירים",sbCsv:"⬇ ייצוא CSV",sbClear:"🗑 נקה הכל",sbClearQ:"למחוק את כל היסטוריית התחזיות?",sbDelQ:"למחוק את התחזית הזו?",sbNote:"תחזית אחת לכל מניה ביום (ניתוח חוזר באותו יום מעדכן אותה). ביצועי עבר אינם מבטיחים ביצועים עתידיים.",
 recBUY:"קנייה",recSELL:"מכירה",recHOLD:"החזקה",
@@ -241,6 +241,9 @@ async function runDiagnostics(){
   lines.push('AI provider: '+(cfg.provider||'none')+' · chosen model: '+(cfg.provider?(getChosenModel(cfg.provider)||'auto'):'-')+' · last working model: '+(cfg.provider?(localStorage.getItem('stockai_worked_'+cfg.provider)||'-'):'-')+(cfg.provider==='gemini'?' · keys: '+getGeminiKeys().length:''));
   lines.push('Data worker: '+worker);
   lines.push('Watchlist: '+loadWatchlist().length+' · Theses: '+Object.keys(thLoad()).length+' · Predictions: '+sbLoad().length+' · Cached quotes: '+Object.keys(snapLoad()).length);
+  var mods=(typeof APP_MODULES!=='undefined'?APP_MODULES:[]).filter(function(m){return !(window.__MODS&&window.__MODS[m]);});
+  lines.push('Modules: '+(mods.length?'MISSING '+mods.join(', '):'all loaded ✓'));
+  try{var el=JSON.parse(localStorage.getItem('stockai_errlog')||'[]');lines.push('Recent errors: '+(el.length?'':'none'));el.slice(-6).forEach(function(x){lines.push('  '+x.t.slice(5,16).replace('T',' ')+' '+x.s+(x.l?':'+x.l:'')+' — '+x.m);});}catch(e){}
   var txt=lines.join('\n');
   box.innerHTML='<div class="rec-trend-title" style="margin-top:14px">'+P4('diagT')+'</div><pre class="diag-pre">'+escHtml(txt)+'</pre>'
     +'<button class="btn-test-ai" onclick="copyDiag()">'+P4('diagCopy')+'</button><div class="ta-small">'+P4('diagNote')+'</div>';
@@ -321,3 +324,4 @@ function buildAssistantConfig(){
     suggestions:ASSIST_SUGG[curLang]||ASSIST_SUGG.en
   };
 }
+;(window.__MODS=window.__MODS||{})['app-platform']=1;

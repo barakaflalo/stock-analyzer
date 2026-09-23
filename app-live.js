@@ -134,7 +134,7 @@ function mkSet(k,v){MK[k]=v;renderMarket();}
 function renderMarket(){
   var el=document.getElementById('marketBody');if(!el)return;
   var tabs=[['us','tabUS'],['il','tabIL'],['screen','tabScreen'],['econ','tabEcon'],['earn','tabEarn']];
-  var h='<div class="mk-tabs">'+tabs.map(function(t){return '<button class="'+(MK.tab===t[0]?'on':'')+'" onclick="mkSet(\'tab\',\''+t[0]+'\')">'+(P5_T.en[t[1]]?P5(t[1]):P6(t[1]))+'</button>';}).join('')+'</div>';
+  var h='<div class="mk-tabs">'+tabs.map(function(t){return '<button class="'+(MK.tab===t[0]?'on':'')+'" onclick="mkSet(\'tab\',\''+t[0]+'\')">'+(P5_T.en[t[1]]?P5(t[1]):(typeof P6==='function'?P6(t[1]):'🔎'))+'</button>';}).join('')+'</div>';
   var sub='';
   if(MK.tab==='us')sub=[['day_gainers','lGainers'],['day_losers','lLosers'],['most_actives','lActive'],['most_shorted_stocks','lShorted']].map(function(s){return '<button class="'+(MK.list===s[0]?'on':'')+'" onclick="mkSet(\'list\',\''+s[0]+'\')">'+P5(s[1])+'</button>';}).join('');
   if(MK.tab==='il')sub=[['gainers','lGainers'],['losers','lLosers'],['active','lActive']].map(function(s){return '<button class="'+(MK.ilSort===s[0]?'on':'')+'" onclick="mkSet(\'ilSort\',\''+s[0]+'\')">'+P5(s[1])+'</button>';}).join('');
@@ -145,7 +145,7 @@ function renderMarket(){
   if(MK.tab==='us')mkLoadMovers('us:'+MK.list,'action=movers&list='+MK.list,P5('usNote'));
   else if(MK.tab==='il')mkLoadMovers('il:'+MK.ilSort,'action=ilmovers&sort='+MK.ilSort,P5('ilNote'));
   else if(MK.tab==='econ')mkLoadEcon();
-  else if(MK.tab==='screen')renderScreener();
+  else if(MK.tab==='screen'){if(typeof renderScreener==='function')renderScreener();}
   else mkLoadEarn();
 }
 async function mkLoadMovers(key,params,note){
@@ -254,3 +254,4 @@ buildExtraContext=function(symbol){
   return s;
 };
 function p5Labels(){var b=document.getElementById('btnMarket');if(b)b.textContent=P5('mktBtn');var t=document.getElementById('marketTitle');if(t)t.textContent=P5('mktT');}
+;(window.__MODS=window.__MODS||{})['app-live']=1;

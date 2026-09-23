@@ -75,7 +75,20 @@ function rerenderForLanguage(){
 buildAssistantConfig();
 var __origSetLang=setLang;setLang=function(l){__origSetLang(l);try{rerenderForLanguage();}catch(e){}try{a11yLabels();p5Labels();lsBadge();if(document.getElementById('marketOverlay').classList.contains('open'))renderMarket();if(document.getElementById('tourOverlay').classList.contains('open'))renderTour();buildAssistantConfig();if(document.getElementById('scoreOverlay').classList.contains('open'))renderScoreboard();}catch(e){}};
 
+/* בדיקה עצמית — אם קובץ לא נטען (למשל גרסאות מעורבבות מהמטמון), מציגים פס רענון במקום כפתורים מתים */
+var APP_MODULES=['app-i18n','app-core','app-ai','app-ui','app-market','app-engines','app-value','app-platform','app-live','app-insights','app-init'];
+function moduleCheck(){
+  var miss=APP_MODULES.filter(function(m){return !(window.__MODS&&window.__MODS[m]);});
+  if(!miss.length)return;
+  try{var a=JSON.parse(localStorage.getItem('stockai_errlog')||'[]');a.push({t:new Date().toISOString(),m:'Missing modules: '+miss.join(', '),s:'moduleCheck',l:0});localStorage.setItem('stockai_errlog',JSON.stringify(a.slice(-10)));}catch(e){}
+  var he=(typeof curLang!=='undefined'&&curLang==='he'),b=document.createElement('div');b.className='file-warn';b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;margin:0;border-radius:0;text-align:center;cursor:pointer';
+  b.textContent=he?'⚠️ העדכון לא נטען במלואו — לחץ כאן לרענון':'⚠️ The update did not fully load — tap here to refresh';
+  b.onclick=function(){var go=function(){location.replace(location.pathname+'?r='+Date.now());};
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}).then(go,go);else go();};
+  document.body.appendChild(b);
+}
 window.onload=function(){
+  moduleCheck();
   startupChecks();
   try{var tk=localStorage.getItem('stockai_snap_ticker');if(tk){var tr=document.getElementById('tickerTrack');tr.innerHTML=tk+tk;}}catch(e){}
   applyTheme();
@@ -103,3 +116,4 @@ window.onload=function(){
     setTimeout(function(){splash.style.display='none';},600);
   },1800);
 };
+;(window.__MODS=window.__MODS||{})['app-init']=1;

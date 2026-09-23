@@ -235,3 +235,4 @@ buildExtraContext=function(symbol){
     s+='PEERS ('+pr.d.group+'): '+pr.d.peers.slice(0,8).map(function(p){return p.symbol+(p.pe?' P/E '+p.pe.toFixed(1):'');}).join(', ')+(pes.length?' — median P/E '+pes[Math.floor(pes.length/2)].toFixed(1):'')+'.\n';}
   return s;
 };
+;(window.__MODS=window.__MODS||{})['app-insights']=1;

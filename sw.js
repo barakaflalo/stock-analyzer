@@ -1,41 +1,33 @@
 // ═══════════════════════════════════════════════════
-// StockAI Service Worker v3 — Network First
-// תמיד מביא גרסה טרייה מהרשת; מטמון רק כגיבוי לאופליין
+// StockAI Service Worker v9 — Network First + revalidate
+// כל קבצי האפליקציה נבדקים מול השרת בכל טעינה (ETag — זול ומהיר),
+// כך שלא יכולות להיטען גרסאות מעורבבות. מטמון רק כגיבוי לאופליין.
 // ═══════════════════════════════════════════════════
-const CACHE_NAME = 'stockai-v8';
+const CACHE_NAME = 'stockai-v9';
 
-// התקנה: השתלט מיד (בלי לחכות לסגירת טאבים ישנים)
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
+self.addEventListener('install', () => { self.skipWaiting(); });
 
-// הפעלה: מחק את כל המטמונים הישנים + השתלט על כל הטאבים
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      ))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
-// Network First: קודם רשת (תמיד טרי!), מטמון רק אם אין אינטרנט
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  // אל תתערב בבקשות ל-API חיצוניים (Worker, Yahoo, Google וכו')
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
-
+  if (url.origin !== self.location.origin) return;   // APIs חיצוניים — לא נוגעים
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request.url, { cache: 'no-cache', credentials: 'same-origin' })
       .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME)
-          .then((cache) => cache.put(event.request, copy))
-          .catch(() => {});
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((c) => c.put(event.request, copy)).catch(() => {});
+        }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(event.request).then((r) => r || caches.match(url.pathname.replace(/[^/]*$/, ''))))
   );
 });

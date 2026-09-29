@@ -120,7 +120,7 @@ function renderHistory(){
    SHARE + PWA + UTILS
 ══════════════════════════════════════════════════ */
 function shareApp(){
-  var url=location.protocol==='file:'?'https://barakaflalo.github.io/stock-analyzer/':location.origin+location.pathname;
+  var url=location.protocol==='file:'?'https://stock-analyzer-appnest.pages.dev/':location.origin+location.pathname;
   var who=getUsername()?'\n'+P4('shareBy',{u:getUsername()}):'';
   if(navigator.share){navigator.share({title:T('shareTitle'),text:T('shareText')+who,url:url}).catch(function(){});return;}
   var txt=T('shareText')+who+'\n'+url;

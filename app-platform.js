@@ -209,7 +209,7 @@ function renderAbout(){
     +abRow(P4('abKeys'),keyState)+abRow(P4('abPersist'),'<span id="abPersistVal">…</span>')+abRow(P4('abLicense'),'© AppNest 2026')+'</div>'
     +'<label class="th-lbl">'+P4('abUser')+'</label><input class="key-input" id="abUser" maxlength="40" placeholder="'+escHtml(P4('abUserPh'))+'" value="'+escHtml(getUsername())+'" oninput="localStorage.setItem(\'stockai_username\',this.value)">'
     +'<div class="ab-btns">'
-    +'<a href="https://barakaflalo.github.io/appnest" target="_blank" rel="noopener">'+P4('abStore')+'</a>'
+    +'<a href="https://appnest-store.pages.dev" target="_blank" rel="noopener">'+P4('abStore')+'</a>'
     +'<button onclick="shareApp()">'+P4('abShare')+'</button>'
     +'<a href="mailto:appnest55@gmail.com?subject='+encodeURIComponent('StockAI v'+APP_VERSION+' feedback')+'">'+P4('abFeedback')+'</a>'
     +'<button onclick="closeModal(\'aboutOverlay\');openGuide()">'+P4('abGuide')+'</button>'
@@ -285,7 +285,7 @@ function a11yLabels(){
 
 /* ══ 7. STARTUP CHECKS — קובץ מקומי/ZIP, אחסון מתמשך ══ */
 function startupChecks(){
-  if(location.protocol==='file:'){var b=document.createElement('div');b.className='file-warn';b.innerHTML=P4('fileWarn')+' <a href="https://barakaflalo.github.io/stock-analyzer/">barakaflalo.github.io/stock-analyzer</a>';var m=document.querySelector('main');if(m)m.insertBefore(b,m.firstChild);}
+  if(location.protocol==='file:'){var b=document.createElement('div');b.className='file-warn';b.innerHTML=P4('fileWarn')+' <a href="https://stock-analyzer-appnest.pages.dev/">stock-analyzer-appnest.pages.dev</a>';var m=document.querySelector('main');if(m)m.insertBefore(b,m.firstChild);}
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
   try{localStorage.removeItem('stockai_gemini_model');}catch(e){}
 }

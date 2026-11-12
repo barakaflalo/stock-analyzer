@@ -1,5 +1,5 @@
 /* StockAI · app-init.js — Onboarding tour, language re-render, startup (window.onload)
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══ ONBOARDING TOUR — סיור היכרות קצר למשתמש חדש (6 שלבים, אפשר לדלג) ══ */
 var TOUR_T={
 he:{skip:"דלג",next:"הבא ←",back:"→ הקודם",done:"בוא נתחיל! 🚀",replay:"🎓 סיור היכרות",
@@ -38,7 +38,7 @@ s:[["👋","مرحباً بك في StockAI","تحليل أسهم أمريكا و
 ["🔥","السوق · النتيجة · المتابعة","🔥 ما يتحرك اليوم في أمريكا وإسرائيل + التقويم الاقتصادي والنتائج. 📊 كم مرة أصاب الذكاء الاصطناعي. ◈ قائمتك."],
 ["⚠️","مهم أن تعرف","كل شيء للمعلومات والتعلم — ليس نصيحة استثمارية. بياناتك تبقى على جهازك فقط. ℹ️ حول ← الخصوصية والتشخيص."]]}
 };
-var TOUR_TARGETS=[null,'.search-card',null,'#aiStatusBtn','.header-bottom-row',null],__tourStep=0;
+var TOUR_TARGETS=[null,'.search-card',null,'#aiStatusBtn','#bottomNav',null],__tourStep=0;
 function TT(){return TOUR_T[curLang]||TOUR_T.en;}
 function startTour(){__tourStep=0;renderTour();openModal('tourOverlay');}
 function tourHl(sel){document.querySelectorAll('.tour-hl').forEach(function(e){e.classList.remove('tour-hl');});
@@ -73,10 +73,10 @@ function rerenderForLanguage(){
   try{renderHistory();}catch(e){}
 }
 buildAssistantConfig();
-var __origSetLang=setLang;setLang=function(l){__origSetLang(l);try{document.documentElement.lang=l;document.documentElement.dir=(l==='he'||l==='ar')?'rtl':'ltr';}catch(e){}try{rerenderForLanguage();}catch(e){}try{a11yLabels();p5Labels();p7Labels();lsBadge();if(document.getElementById('marketOverlay').classList.contains('open'))renderMarket();if(document.getElementById('tourOverlay').classList.contains('open'))renderTour();buildAssistantConfig();if(document.getElementById('scoreOverlay').classList.contains('open'))renderScoreboard();}catch(e){}};
+var __origSetLang=setLang;setLang=function(l){__origSetLang(l);try{document.documentElement.lang=l;document.documentElement.dir=(l==='he'||l==='ar')?'rtl':'ltr';}catch(e){}try{rerenderForLanguage();}catch(e){}try{a11yLabels();p5Labels();p7Labels();lsBadge();if(document.getElementById('marketOverlay').classList.contains('open'))renderMarket();if(document.getElementById('tourOverlay').classList.contains('open'))renderTour();buildAssistantConfig();if(document.getElementById('scoreOverlay').classList.contains('open'))renderScoreboard();if(document.getElementById('pfOverlay').classList.contains('open'))renderPortfolio();}catch(e){}try{if(typeof navLabels==='function')navLabels();}catch(e){}};
 
 /* בדיקה עצמית — אם קובץ לא נטען (למשל גרסאות מעורבבות מהמטמון), מציגים פס רענון במקום כפתורים מתים */
-var APP_MODULES=['app-i18n','app-core','app-ai','app-ui','app-market','app-engines','app-value','app-platform','app-live','app-insights','app-portfolio','app-init'];
+var APP_MODULES=['app-i18n','app-core','app-ai','app-ui','app-market','app-engines','app-value','app-platform','app-live','app-insights','app-portfolio','app-nav','app-decide','app-init'];
 function moduleCheck(){
   var miss=APP_MODULES.filter(function(m){return !(window.__MODS&&window.__MODS[m]);});
   if(!miss.length)return;
@@ -102,6 +102,7 @@ window.onload=function(){
   a11yLabels();
   p5Labels();
   p7Labels();
+  try{navLabels();navSync();}catch(e){}
   setTimeout(lsConnect,2500);
   setTimeout(maybeStartTour,2400);
   // Live market data — loads immediately, no AI needed

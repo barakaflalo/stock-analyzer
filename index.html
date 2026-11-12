@@ -2,7 +2,6 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<script>/* Moved to its own address. Redirect ONLY from the old GitHub Pages address (same repo feeds both). */(function(){try{if(location.hostname==='barakaflalo.github.io'){var p=location.pathname.replace(/^\/[^\/]+/,'')||'/';location.replace('https://stock-analyzer-appnest.pages.dev'+p+location.search+location.hash);}}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StockAI — Smart Stock Analysis</title>
 <meta name="description" content="AI-powered stock analysis for US & Israel markets">
@@ -14,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="StockAI">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Sans+Hebrew:wght@300;400;700&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="stockai.css?v=2.3.0">
+<link rel="stylesheet" href="stockai.css?v=2.4.0">
 </head>
 <body class="ltr" id="appBody">
 <a href="#mainContent" class="skip-link" id="skipLink">Skip to content</a>
@@ -27,7 +26,7 @@
   <div class="splash-dots"><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div></div>
 </div>
 
-<script src="app-i18n.js?v=2.3.0"></script>
+<script src="app-i18n.js?v=2.4.0"></script>
 
 <!-- TICKER -->
 <div class="ticker-wrap"><div class="ticker-track" id="tickerTrack">
@@ -134,6 +133,7 @@
         <div class="chart-loading" id="chartLoading" style="display:none"></div>
       </div>
     </div>
+    <div class="rec-trend-wrap" id="lvPlan" style="display:none"></div>
     <div class="live-metrics" id="lvMetrics"></div>
     <div class="live-analyst" id="lvAnalyst" style="display:none"></div>
     <div class="rec-trend-wrap" id="lvRecTrend" style="display:none"></div>
@@ -253,6 +253,16 @@
 </main>
 
 <div class="toast" id="toast"></div>
+<div class="undo-bar" id="undoBar" role="status"><span id="undoMsg"></span><button id="undoBtn"></button></div>
+
+<!-- ══ BOTTOM NAVIGATION (requirement 2: yes — an app you return to many times a day, 4 fixed areas) ══ -->
+<nav class="bnav" id="bottomNav" aria-label="StockAI">
+  <button id="bn-home" onclick="navGo('home')"><span class="bn-i">🏠</span><span class="bn-l" id="bnl-home"></span></button>
+  <button id="bn-watch" onclick="navGo('watch')"><span class="bn-i">⭐<em class="bn-badge" id="bnWatchCount"></em></span><span class="bn-l" id="bnl-watch"></span></button>
+  <button id="bn-market" onclick="navGo('market')"><span class="bn-i">🔥</span><span class="bn-l" id="bnl-market"></span></button>
+  <button id="bn-pf" onclick="navGo('pf')"><span class="bn-i">💼</span><span class="bn-l" id="bnl-pf"></span></button>
+  <button id="bn-more" onclick="navGo('more')"><span class="bn-i">☰</span><span class="bn-l" id="bnl-more"></span></button>
+</nav>
 
 <!-- ══ WATCHLIST PANEL ══ -->
 <div class="watch-overlay" id="watchOverlay" onclick="closeWatchPanel()"></div>
@@ -335,6 +345,20 @@
   </div>
 </div>
 
+<!-- ══ MORE ══ -->
+<div class="modal-overlay" id="moreOverlay">
+  <div class="modal-box">
+    <div class="modal-header"><div class="modal-title" id="moreTitle"></div><button class="modal-close" onclick="closeModal('moreOverlay')">✕</button></div>
+    <div class="modal-body" id="moreBody"></div>
+  </div>
+</div>
+<!-- ══ IN-APP CONFIRM (only for actions that cannot be undone) ══ -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-body"><div class="cf-msg" id="cfMsg"></div><div class="sb-actions" style="margin-top:14px"><button class="btn-ai-analyze" id="cfOk"></button><button id="cfCancel"></button></div></div>
+  </div>
+</div>
+
 <!-- ══ GUIDE MODAL ══ -->
 <div class="modal-overlay" id="guideOverlay">
   <div class="modal-box">
@@ -346,18 +370,20 @@
     <div id="guidePanes"></div>
   </div>
 </div>
-<script src="app-core.js?v=2.3.0"></script>
-<script src="app-ai.js?v=2.3.0"></script>
-<script src="app-ui.js?v=2.3.0"></script>
-<script src="app-market.js?v=2.3.0"></script>
-<script src="app-engines.js?v=2.3.0"></script>
-<script src="app-value.js?v=2.3.0"></script>
-<script src="app-platform.js?v=2.3.0"></script>
-<script src="app-live.js?v=2.3.0"></script>
-<script src="app-insights.js?v=2.3.0"></script>
-<script src="app-portfolio.js?v=2.3.0"></script>
-<script src="app-init.js?v=2.3.0"></script>
+<script src="app-core.js?v=2.4.0"></script>
+<script src="app-ai.js?v=2.4.0"></script>
+<script src="app-ui.js?v=2.4.0"></script>
+<script src="app-market.js?v=2.4.0"></script>
+<script src="app-engines.js?v=2.4.0"></script>
+<script src="app-value.js?v=2.4.0"></script>
+<script src="app-platform.js?v=2.4.0"></script>
+<script src="app-live.js?v=2.4.0"></script>
+<script src="app-insights.js?v=2.4.0"></script>
+<script src="app-portfolio.js?v=2.4.0"></script>
+<script src="app-nav.js?v=2.4.0"></script>
+<script src="app-decide.js?v=2.4.0"></script>
+<script src="app-init.js?v=2.4.0"></script>
 <!-- AppNest Assistant — המנוע זהה בכל האפליקציות; המפה: buildAssistantConfig() -->
-<script src="appnest-assistant.js?v=2.3.0" defer onerror="this.remove()"></script>
+<script src="appnest-assistant.js?v=2.4.0" defer onerror="this.remove()"></script>
 </body>
 </html>

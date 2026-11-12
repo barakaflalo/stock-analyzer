@@ -4,7 +4,7 @@
    PHASE 4 — לפי מסמך הדרישות AppNest v10
    כרטיס ניקוד · השלמה אוטומטית · מטמון מיידי · הצפנת מפתחות · אודות · אבחון · נגישות
 ══════════════════════════════════════════════════════════════ */
-var APP_VERSION='2.3.0';
+var APP_VERSION='2.4.0';
 var P4_T={
 he:{sbBtn:"📊 ניקוד AI",sbT:"📊 כרטיס ניקוד — כמה ה-AI צודק?",sbSummary:"ה-AI צדק ב-{h} מתוך {n} תחזיות שנבדקו",sbRate:"שיעור הצלחה",sbTotal:"תחזיות",sbPending:"ממתינות",sbAvgBuy:"תשואה ממוצעת להמלצות קנייה",sbEmpty:"עדיין אין תחזיות. כל ניתוח AI נשמר כאן אוטומטית עם המחיר והתאריך — ואחרי שבוע אפשר לראות אם צדק.",sbRule:"כלל הבדיקה (אחרי 7 ימים לפחות): קנייה = המחיר עלה · מכירה = המחיר ירד · החזקה = שינוי קטן מ-5%.",sbSince:"מאז",sbEntry:"מחיר בעת התחזית",sbNow:"עכשיו",sbHit:"✓ צדק",sbMiss:"✗ טעה",sbWait:"⏳ {n} ימים לבדיקה",sbTarget:"🎯 הגיע ליעד",sbRefresh:"🔄 רענן מחירים",sbCsv:"⬇ ייצוא CSV",sbClear:"🗑 נקה הכל",sbClearQ:"למחוק את כל היסטוריית התחזיות?",sbDelQ:"למחוק את התחזית הזו?",sbNote:"תחזית אחת לכל מניה ביום (ניתוח חוזר באותו יום מעדכן אותה). ביצועי עבר אינם מבטיחים ביצועים עתידיים.",
 recBUY:"קנייה",recSELL:"מכירה",recHOLD:"החזקה",
@@ -206,7 +206,7 @@ function renderAbout(){
     +'<div class="ab-card">'
     +abRow(P4('abVersion'),APP_VERSION)+abRow(P4('abDev'),'Barak Aflalo')+abRow(P4('abPlatform'),'PWA · HTML5')
     +abRow(P4('abStorage'),P4('abStorageV'))+abRow(P4('abSources'),'Yahoo Finance · SEC EDGAR · ECB')
-    +abRow(P4('abKeys'),keyState)+abRow(P4('abPersist'),'<span id="abPersistVal">…</span>')+abRow(P4('abLicense'),'© AppNest 2026')+'</div>'
+    +abRow(P4('abKeys'),keyState)+abRow(P4('abPersist'),'<span id="abPersistVal">…</span>')+(typeof P8==='function'?abRow(P8('abIdeas'),'ai-berkshire · Vibe-Trading · daily_stock_analysis (MIT)'):'')+abRow(P4('abLicense'),'© AppNest 2026')+'</div>'
     +'<label class="th-lbl">'+P4('abUser')+'</label><input class="key-input" id="abUser" maxlength="40" placeholder="'+escHtml(P4('abUserPh'))+'" value="'+escHtml(getUsername())+'" oninput="localStorage.setItem(\'stockai_username\',this.value)">'
     +'<div class="ab-btns">'
     +'<a href="https://appnest-store.pages.dev" target="_blank" rel="noopener">'+P4('abStore')+'</a>'
@@ -285,7 +285,7 @@ function a11yLabels(){
 
 /* ══ 7. STARTUP CHECKS — קובץ מקומי/ZIP, אחסון מתמשך ══ */
 function startupChecks(){
-  if(location.protocol==='file:'){var b=document.createElement('div');b.className='file-warn';b.innerHTML=P4('fileWarn')+' <a href="https://stock-analyzer-appnest.pages.dev/">stock-analyzer-appnest.pages.dev</a>';var m=document.querySelector('main');if(m)m.insertBefore(b,m.firstChild);}
+  if(location.protocol==='file:'){var b=document.createElement('div');b.className='file-warn';b.innerHTML=P4('fileWarn')+' <a href="https://barakaflalo.github.io/stock-analyzer/">barakaflalo.github.io/stock-analyzer</a>';var m=document.querySelector('main');if(m)m.insertBefore(b,m.firstChild);}
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
   try{localStorage.removeItem('stockai_gemini_model');}catch(e){}
 }

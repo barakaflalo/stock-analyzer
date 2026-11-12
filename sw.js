@@ -20,11 +20,11 @@
 })();
 
 // ═══════════════════════════════════════════════════
-// StockAI Service Worker v11 (2.4.0) — Network First + revalidate
+// StockAI Service Worker v13 (2.5.0) — Network First + revalidate
 // כל קבצי האפליקציה נבדקים מול השרת בכל טעינה (ETag — זול ומהיר),
 // כך שלא יכולות להיטען גרסאות מעורבבות. מטמון רק כגיבוי לאופליין.
 // ═══════════════════════════════════════════════════
-const CACHE_NAME = 'stockai-v11';
+const CACHE_NAME = 'stockai-v13';
 
 self.addEventListener('install', () => { self.skipWaiting(); });
 

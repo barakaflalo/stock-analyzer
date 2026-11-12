@@ -76,7 +76,7 @@ buildAssistantConfig();
 var __origSetLang=setLang;setLang=function(l){__origSetLang(l);try{document.documentElement.lang=l;document.documentElement.dir=(l==='he'||l==='ar')?'rtl':'ltr';}catch(e){}try{rerenderForLanguage();}catch(e){}try{a11yLabels();p5Labels();p7Labels();lsBadge();if(document.getElementById('marketOverlay').classList.contains('open'))renderMarket();if(document.getElementById('tourOverlay').classList.contains('open'))renderTour();buildAssistantConfig();if(document.getElementById('scoreOverlay').classList.contains('open'))renderScoreboard();if(document.getElementById('pfOverlay').classList.contains('open'))renderPortfolio();}catch(e){}try{if(typeof navLabels==='function')navLabels();}catch(e){}};
 
 /* בדיקה עצמית — אם קובץ לא נטען (למשל גרסאות מעורבבות מהמטמון), מציגים פס רענון במקום כפתורים מתים */
-var APP_MODULES=['app-i18n','app-core','app-ai','app-ui','app-market','app-engines','app-value','app-platform','app-live','app-insights','app-portfolio','app-nav','app-decide','app-init'];
+var APP_MODULES=['app-i18n','app-core','app-ai','app-ui','app-market','app-engines','app-value','app-platform','app-live','app-insights','app-portfolio','app-nav','app-decide','app-lens','app-import','app-init'];
 function moduleCheck(){
   var miss=APP_MODULES.filter(function(m){return !(window.__MODS&&window.__MODS[m]);});
   if(!miss.length)return;

@@ -755,3 +755,49 @@ body.light .pl-lv em{color:var(--text-dim);}
 .rk-f{font-size:12px;line-height:1.55;color:var(--gold);padding:4px 0;}
 .rk-ok{font-size:12px;color:var(--green);padding:4px 0;}
 .rk-i{font-size:11px;color:var(--text-dim);padding:2px 0;}
+/* v2.4.1 — language picker moved from the header to More */
+body.tabs-on .header-top-row .lang-selector{display:none;}
+.mr-langrow{cursor:default;}
+.mr-langs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.mr-langs button{background:var(--bg2);border:1px solid var(--border);color:var(--text-dim);padding:7px 12px;border-radius:16px;font-size:13px;cursor:pointer;font-family:inherit;}
+.mr-langs button.on{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.1);font-weight:700;}
+body.tabs-on #appnest-assistant-panel{bottom:calc(128px + env(safe-area-inset-bottom))!important;max-height:calc(100vh - 190px)!important;}
+
+/* ══ v2.5 — strategy lenses · screener why · screenshot import ══ */
+.ln-sum{font-size:13px;color:var(--text);font-weight:600;margin:4px 0 10px;}
+.ln-list{display:flex;flex-direction:column;gap:5px;}
+.ln-row{border:1px solid var(--border);border-radius:4px;padding:8px 10px;background:var(--bg2);}
+.ln-row.yes{border-color:rgba(76,175,114,.45);background:rgba(76,175,114,.06);}
+.ln-row.near{border-color:rgba(201,168,76,.35);}
+.ln-row.no,.ln-row.na{opacity:.72;}
+.ln-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.ln-top b{font-size:13px;color:var(--text);}
+.ln-st{font-size:11px;white-space:nowrap;color:var(--text-dim);}
+.ln-row.yes .ln-st{color:var(--green);font-weight:700;}
+.ln-row.near .ln-st{color:var(--gold);}
+.ln-d{font-size:12px;color:var(--text);margin-top:3px;line-height:1.5;}
+.ln-m{font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.5;}
+.pl-lens{display:block;width:100%;text-align:start;background:rgba(76,175,114,.07);border:1px solid rgba(76,175,114,.35);color:var(--green);font-size:12px;font-weight:600;border-radius:4px;padding:7px 10px;margin:0 0 8px;cursor:pointer;font-family:inherit;}
+.scr-item{border-bottom:1px solid var(--border);cursor:pointer;}
+.scr-item .mk-row{border-bottom:none;}
+.scr-why{display:flex;flex-direction:column;gap:2px;padding:0 10px 8px;font-size:11px;color:var(--text-dim);line-height:1.5;}
+.scr-why b{color:var(--text);font-weight:600;}
+.scr-mean{font-size:12px;color:var(--text);line-height:1.6;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:8px 10px;}
+.scr-tag{display:inline-block;font-size:9px;letter-spacing:.5px;border-radius:10px;padding:1px 7px;border:1px solid;font-family:'IBM Plex Mono',monospace;vertical-align:1px;}
+.scr-tag.m{color:var(--green);border-color:rgba(76,175,114,.5);}
+.scr-tag.i{color:var(--gold);border-color:rgba(201,168,76,.5);}
+.imp-priv{font-size:12px;line-height:1.6;color:var(--text-dim);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:8px 10px;}
+.imp-big{display:block;width:100%;margin-top:8px;background:var(--bg3);border:1px solid var(--gold-dim);color:var(--gold);padding:10px;border-radius:4px;font-family:inherit;font-size:13px;cursor:pointer;}
+.imp-list{display:flex;flex-direction:column;gap:6px;}
+.imp-row{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--border);border-radius:4px;padding:8px;background:var(--bg2);}
+.imp-row.off{opacity:.6;}
+.imp-chk input{width:18px;height:18px;margin-top:2px;}
+.imp-main{flex:1;min-width:0;}
+.imp-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.imp-fields{display:grid;grid-template-columns:1.2fr .8fr 1fr .9fr;gap:6px;}
+.imp-fields label{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.imp-fields span{font-size:9px;color:var(--text-dim);}
+.imp-fields .key-input{padding:6px;font-size:12px;margin:0;width:100%;}
+.imp-fields b{font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--text);padding-top:6px;}
+.imp-flags{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px;font-size:11px;}
+.imp-flags .ok{color:var(--green);}.imp-flags .warn{color:var(--gold);}.imp-flags .bad{color:var(--red);}

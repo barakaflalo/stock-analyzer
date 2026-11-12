@@ -1,5 +1,5 @@
 /* StockAI · app-ai.js — AI layer: provider calls, model chains & live lists, key cleaning, analysis prompt
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══════════════════════════════════════════════════
    CORE AI FETCH
 ══════════════════════════════════════════════════ */
@@ -119,7 +119,8 @@ async function geminiCall(apiKey,promptText,maxTokens,opts){
     for(var t=0;t<tries.length&&!nextModel;t++){
       var tr=tries[t],gc={temperature:0.3,maxOutputTokens:Math.max(maxTokens||2000,8192)};
       if(tr.nt)gc.thinkingConfig={thinkingBudget:0};
-      var body={contents:[{parts:[{text:promptText}]}],generationConfig:gc};
+      var parts0=opts.image?[{inline_data:{mime_type:opts.image.mime,data:opts.image.b64}},{text:promptText}]:[{text:promptText}];
+      var body={contents:[{parts:parts0}],generationConfig:gc};
       if(tr.s)body.tools=[{google_search:{}}];
       var res;
       try{res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent?key='+encodeURIComponent(apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
@@ -164,7 +165,8 @@ async function claudeCall(key,system,user,maxTokens,opts){
   for(var i=0;i<models.length;i++){
     var m=models[i],tries=opts.search?[true,false]:[false],nextModel=false;
     for(var t=0;t<tries.length&&!nextModel;t++){
-      var msgs=[{role:'user',content:user}],body={model:m,max_tokens:maxTokens||4000,system:system,messages:msgs};
+      var ucont=opts.image?[{type:'image',source:{type:'base64',media_type:opts.image.mime,data:opts.image.b64}},{type:'text',text:user}]:user;
+      var msgs=[{role:'user',content:ucont}],body={model:m,max_tokens:maxTokens||4000,system:system,messages:msgs};
       if(tries[t])body.tools=[{type:'web_search_20250305',name:'web_search',max_uses:3}];
       var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:hd,body:JSON.stringify(body)});
       if(res.ok){
@@ -190,7 +192,8 @@ async function claudeCall(key,system,user,maxTokens,opts){
 }
 
 /* ── תואם-OpenAI (ChatGPT / מקומי / מותאם) ── */
-async function openaiCall(ep,key,system,user,maxTokens,provider){
+async function openaiCall(ep,key,system,user,maxTokens,provider,opts){
+  opts=opts||{};
   if(!ep)throw new Error('No API endpoint configured');
   key=key&&key!=='none'?firstKey(key):'';
   var hd={'Content-Type':'application/json'};if(key)hd['Authorization']='Bearer '+key;
@@ -199,7 +202,8 @@ async function openaiCall(ep,key,system,user,maxTokens,provider){
   for(var i=0;i<models.length;i++){
     var m=models[i];
     for(var v=0;v<2;v++){ // מודלים חדשים דורשים max_completion_tokens במקום max_tokens
-      var body={model:m,messages:[{role:'system',content:system},{role:'user',content:user}]};
+      var ucont=opts.image?[{type:'image_url',image_url:{url:'data:'+opts.image.mime+';base64,'+opts.image.b64}},{type:'text',text:user}]:user;
+      var body={model:m,messages:[{role:'system',content:system},{role:'user',content:ucont}]};
       if(v===0)body.max_tokens=maxTokens||4000;else body.max_completion_tokens=maxTokens||4000;
       var res=await fetch(ep,{method:'POST',headers:hd,body:JSON.stringify(body)});
       if(res.ok){var d=await res.json();var text=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
@@ -223,9 +227,9 @@ async function aiText(system,user,opts,ov){
   var mt=opts.maxTokens||4000;
   if(p==='gemini'){var keys=splitKeys(ov?ov.key:cfg.geminiKey);var d=await geminiCallMulti(keys,system+'\n\n'+user,mt,opts);return d.__text;}
   if(p==='claude')return await claudeCall(ov?ov.key:cfg.claudeKey,system,user,mt,opts);
-  if(p==='openai')return await openaiCall('https://api.openai.com/v1/chat/completions',ov?ov.key:cfg.openaiKey,system,user,mt,'openai');
-  if(p==='device'){var base=((ov&&ov.url)||cfg.deviceUrl||'http://localhost:11434/v1').replace(/\/+$/,'');return await openaiCall(base+'/chat/completions','none',system,user,mt,'device');}
-  if(p==='custom')return await openaiCall((ov&&ov.url)||cfg.customUrl||'',ov?ov.key:(cfg.customKey||'none'),system,user,mt,'custom');
+  if(p==='openai')return await openaiCall('https://api.openai.com/v1/chat/completions',ov?ov.key:cfg.openaiKey,system,user,mt,'openai',opts);
+  if(p==='device'){var base=((ov&&ov.url)||cfg.deviceUrl||'http://localhost:11434/v1').replace(/\/+$/,'');return await openaiCall(base+'/chat/completions','none',system,user,mt,'device',opts);}
+  if(p==='custom')return await openaiCall((ov&&ov.url)||cfg.customUrl||'',ov?ov.key:(cfg.customKey||'none'),system,user,mt,'custom',opts);
   throw new Error('Unknown AI provider');
 }
 

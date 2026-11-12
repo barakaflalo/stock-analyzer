@@ -1,5 +1,5 @@
 /* StockAI · app-live.js — Live price stream, market screen, calendars, Bank of Israel, TradingView second opinion
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══════════════════════════════════════════════════════════════
    PHASE 5 — זרם חי · מסך שוק · יומן כלכלי ודוחות · בנק ישראל · חוות דעת שנייה
    מקורות: yfinance (Apache-2.0), TradingView-Screener (MIT), skills-il/mcps (BOI)

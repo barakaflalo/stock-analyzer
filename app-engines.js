@@ -1,5 +1,5 @@
 /* StockAI · app-engines.js — Analysis engines: technical, candlesticks, seasonality, quality screen, SEC events, 4-masters render
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══════════════════════════════════════════════════════════════
    ANALYSIS ENGINES — טכני · איכות · אירועים · ועדת מאסטרים
    שיטות מבוססות על Vibe-Trading (MIT) ו-AI Berkshire (MIT)

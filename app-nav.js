@@ -4,31 +4,31 @@
    StockAI is an app you return to many times a day and move between 4 fixed areas), part 41 §5 (undo), part 31 (ghost click).
    AppNest © 2026 · load order: after app-portfolio.js, before app-decide.js / app-init.js */
 var NAV_T={
-he:{assistant:"עוזר",home:"בית",watch:"מעקב",market:"שוק",pf:"תיק",more:"עוד",moreT:"☰ עוד",
+he:{mLang:"🌐 שפה",assistant:"עוזר",home:"בית",watch:"מעקב",market:"שוק",pf:"תיק",more:"עוד",moreT:"☰ עוד",
   gTools:"כלים",gSettings:"הגדרות",gInfo:"מידע",
   mScore:"📊 כרטיס ניקוד",mScoreS:"{n} תחזיות נשמרו",mAlerts:"🔔 התראות מחיר",mAlertsS:"{n} פעילות",mAi:"🤖 חיבור בינה (AI)",mAiOn:"מחובר: {p}",mAiOff:"לא מחובר — האפליקציה עובדת גם בלי",
   mTheme:"🌗 מצב יום / לילה",mThemeD:"כרגע: לילה",mThemeL:"כרגע: יום",mExport:"⬇ גיבוי לקובץ",mExportS:"רשימת מעקב, תיק, התראות, תזות וניקוד — בלי מפתחות",mImport:"⬆ שחזור מגיבוי",
   mGuide:"❓ מדריך",mTour:"🎓 סיור היכרות",mAbout:"ℹ️ אודות, פרטיות ואבחון",mShare:"📤 שתף את האפליקציה",mApps:"🧩 עוד אפליקציות AppNest",
   pressAgainExit:"לחץ שוב כדי לצאת",undo:"↩ בטל",deleted:"נמחק",cleared:"נוקה",restored:"שוחזר",yes:"כן",cancel:"ביטול"},
-en:{assistant:"Assistant",home:"Home",watch:"Watchlist",market:"Market",pf:"Portfolio",more:"More",moreT:"☰ More",
+en:{mLang:"🌐 Language",assistant:"Assistant",home:"Home",watch:"Watchlist",market:"Market",pf:"Portfolio",more:"More",moreT:"☰ More",
   gTools:"Tools",gSettings:"Settings",gInfo:"Info",
   mScore:"📊 Scoreboard",mScoreS:"{n} predictions saved",mAlerts:"🔔 Price alerts",mAlertsS:"{n} active",mAi:"🤖 AI connection",mAiOn:"Connected: {p}",mAiOff:"Not connected — the app works without it",
   mTheme:"🌗 Day / night mode",mThemeD:"Now: night",mThemeL:"Now: day",mExport:"⬇ Back up to a file",mExportS:"Watchlist, portfolio, alerts, theses and scoreboard — no keys",mImport:"⬆ Restore from backup",
   mGuide:"❓ Guide",mTour:"🎓 Quick tour",mAbout:"ℹ️ About, privacy and diagnostics",mShare:"📤 Share the app",mApps:"🧩 More AppNest apps",
   pressAgainExit:"Press back again to exit",undo:"↩ Undo",deleted:"Deleted",cleared:"Cleared",restored:"Restored",yes:"Yes",cancel:"Cancel"},
-ru:{assistant:"Помощник",home:"Главная",watch:"Избранное",market:"Рынок",pf:"Портфель",more:"Ещё",moreT:"☰ Ещё",
+ru:{mLang:"🌐 Язык",assistant:"Помощник",home:"Главная",watch:"Избранное",market:"Рынок",pf:"Портфель",more:"Ещё",moreT:"☰ Ещё",
   gTools:"Инструменты",gSettings:"Настройки",gInfo:"Информация",
   mScore:"📊 Табло точности",mScoreS:"Сохранено прогнозов: {n}",mAlerts:"🔔 Ценовые оповещения",mAlertsS:"Активных: {n}",mAi:"🤖 Подключение ИИ",mAiOn:"Подключено: {p}",mAiOff:"Не подключено — приложение работает и без него",
   mTheme:"🌗 Дневной / ночной режим",mThemeD:"Сейчас: ночь",mThemeL:"Сейчас: день",mExport:"⬇ Резервная копия в файл",mExportS:"Избранное, портфель, оповещения, тезисы и табло — без ключей",mImport:"⬆ Восстановить из копии",
   mGuide:"❓ Руководство",mTour:"🎓 Обзор приложения",mAbout:"ℹ️ О приложении, конфиденциальность, диагностика",mShare:"📤 Поделиться приложением",mApps:"🧩 Другие приложения AppNest",
   pressAgainExit:"Нажмите «назад» ещё раз для выхода",undo:"↩ Отменить",deleted:"Удалено",cleared:"Очищено",restored:"Восстановлено",yes:"Да",cancel:"Отмена"},
-es:{assistant:"Asistente",home:"Inicio",watch:"Seguimiento",market:"Mercado",pf:"Cartera",more:"Más",moreT:"☰ Más",
+es:{mLang:"🌐 Idioma",assistant:"Asistente",home:"Inicio",watch:"Seguimiento",market:"Mercado",pf:"Cartera",more:"Más",moreT:"☰ Más",
   gTools:"Herramientas",gSettings:"Ajustes",gInfo:"Información",
   mScore:"📊 Marcador",mScoreS:"{n} predicciones guardadas",mAlerts:"🔔 Alertas de precio",mAlertsS:"{n} activas",mAi:"🤖 Conexión de IA",mAiOn:"Conectado: {p}",mAiOff:"Sin conexión — la app funciona sin ella",
   mTheme:"🌗 Modo día / noche",mThemeD:"Ahora: noche",mThemeL:"Ahora: día",mExport:"⬇ Copia de seguridad a un archivo",mExportS:"Seguimiento, cartera, alertas, tesis y marcador — sin claves",mImport:"⬆ Restaurar copia",
   mGuide:"❓ Guía",mTour:"🎓 Recorrido rápido",mAbout:"ℹ️ Acerca de, privacidad y diagnóstico",mShare:"📤 Compartir la app",mApps:"🧩 Más apps de AppNest",
   pressAgainExit:"Pulsa atrás otra vez para salir",undo:"↩ Deshacer",deleted:"Eliminado",cleared:"Borrado",restored:"Restaurado",yes:"Sí",cancel:"Cancelar"},
-ar:{assistant:"المساعد",home:"الرئيسية",watch:"المتابعة",market:"السوق",pf:"المحفظة",more:"المزيد",moreT:"☰ المزيد",
+ar:{mLang:"🌐 اللغة",assistant:"المساعد",home:"الرئيسية",watch:"المتابعة",market:"السوق",pf:"المحفظة",more:"المزيد",moreT:"☰ المزيد",
   gTools:"أدوات",gSettings:"الإعدادات",gInfo:"معلومات",
   mScore:"📊 لوحة النتائج",mScoreS:"{n} توقعات محفوظة",mAlerts:"🔔 تنبيهات السعر",mAlertsS:"{n} نشطة",mAi:"🤖 ربط الذكاء الاصطناعي",mAiOn:"متصل: {p}",mAiOff:"غير متصل — التطبيق يعمل بدونه",
   mTheme:"🌗 الوضع النهاري / الليلي",mThemeD:"الآن: ليلي",mThemeL:"الآن: نهاري",mExport:"⬇ نسخة احتياطية إلى ملف",mExportS:"المتابعة والمحفظة والتنبيهات والأطروحات واللوحة — بدون مفاتيح",mImport:"⬆ استعادة من نسخة",
@@ -79,7 +79,8 @@ function navLabels(){
   if(document.getElementById('moreOverlay')&&document.getElementById('moreOverlay').classList.contains('open'))renderMore();
   navBadge();
   // the shared assistant engine writes its button label in Hebrew — label it in the current language
-  var ab=document.getElementById('appnest-assistant-btn');if(ab)ab.textContent='🪄 '+NT('assistant');
+  if(window.AppNestAssistant&&AppNestAssistant.refresh)AppNestAssistant.refresh();
+  else{var ab=document.getElementById('appnest-assistant-btn');if(ab)ab.textContent='🪄 '+NT('assistant');}
 }
 function navBadge(){
   var b=document.getElementById('bnWatchCount');if(!b)return;
@@ -119,6 +120,8 @@ function renderMore(){
     +moreRow('',NT('mScore'),NT('mScoreS',{n:nSb}),"navFrom('more');openScoreboard()")
     +moreRow('',NT('mAlerts'),NT('mAlertsS',{n:nAl}),"navFrom('more');openPortfolio('al')")
     +'<div class="mr-group">'+NT('gSettings')+'</div>'
+    +'<div class="mr-row mr-langrow"><span class="mr-t">'+NT('mLang')+'</span><div class="mr-langs">'
+    +[['he','עברית'],['en','English'],['ru','Русский'],['es','Español'],['ar','العربية']].map(function(l){return '<button class="'+(curLang===l[0]?'on':'')+'" lang="'+l[0]+'" onclick="setLang(\''+l[0]+'\')">'+l[1]+'</button>';}).join('')+'</div></div>'
     +moreRow('',NT('mAi'),prov?NT('mAiOn',{p:escHtml(provName)}):NT('mAiOff'),"navFrom('more');openSetup()")
     +moreRow('',NT('mTheme'),(typeof isDark!=='undefined'&&isDark)?NT('mThemeD'):NT('mThemeL'),"toggleTheme();renderMore()")
     +moreRow('',NT('mExport'),NT('mExportS'),"exportWatchlist()")
@@ -152,12 +155,13 @@ function navBackOne(){
   // (3) autocomplete list
   var ac=document.getElementById('acList');if(ac&&ac.style.display&&ac.style.display!=='none'){if(typeof acHide==='function')acHide();else ac.style.display='none';return true;}
   // (4) AppNest assistant panel
+  if(window.AppNestAssistant&&AppNestAssistant.isOpen&&AppNestAssistant.isOpen()){AppNestAssistant.toggle();return true;}
   var ap=navAssistantPanel();if(ap){var ab=document.getElementById('appnest-assistant-btn');if(ab)ab.click();else ap.style.display='none';return true;}
   // (5) top window — a form inside a window goes back to the window's list first
   var open=navOpenOverlays();
   if(open.length){
     var top=open[open.length-1];
-    if(top.id==='pfOverlay'&&(document.getElementById('pfSym')||document.getElementById('alSym'))){renderPortfolio();return true;}
+    if(top.id==='pfOverlay'&&(document.getElementById('pfSym')||document.getElementById('alSym')||document.getElementById('impStatus')||document.querySelector('#pfBody .imp-list'))){renderPortfolio();return true;}
     var fromMore=__navFromMore;
     navCloseOverlay(top);
     if(fromMore&&top.id!=='moreOverlay'&&!navOpenOverlays().length){__navFromMore=null;openMore();}

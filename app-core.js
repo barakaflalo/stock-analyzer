@@ -1,5 +1,5 @@
 /* StockAI · app-core.js — Core: constants, data-worker client, theme, AI setup screen, guide, watchlist, analysis cache
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══════════════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════════════ */

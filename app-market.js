@@ -1,5 +1,5 @@
 /* StockAI · app-market.js — Live market data: ticker, stock card, chart, forex/crypto, card tabs, news, translation
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══════════════════════════════════════════════════
    LIVE MARKET DATA — טיקר, כרטיס נתונים, גרף, מט"ח
 ══════════════════════════════════════════════════ */

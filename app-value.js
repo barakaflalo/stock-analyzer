@@ -1,5 +1,5 @@
 /* StockAI · app-value.js — Fair-value calculator and thesis journal
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══════════════════════════════════════════════════════════════
    PHASE 3 — שווי הוגן (AI Berkshire terminal_value, MIT) · יומן תזה (thesis-drift)
 ══════════════════════════════════════════════════════════════ */

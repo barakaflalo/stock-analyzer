@@ -1,10 +1,10 @@
 /* StockAI · app-platform.js — Key encryption, scoreboard, autocomplete, cache-first, about, diagnostics, accessibility, assistant map
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══════════════════════════════════════════════════════════════
    PHASE 4 — לפי מסמך הדרישות AppNest v10
    כרטיס ניקוד · השלמה אוטומטית · מטמון מיידי · הצפנת מפתחות · אודות · אבחון · נגישות
 ══════════════════════════════════════════════════════════════ */
-var APP_VERSION='2.4.0';
+var APP_VERSION='2.5.0';
 var P4_T={
 he:{sbBtn:"📊 ניקוד AI",sbT:"📊 כרטיס ניקוד — כמה ה-AI צודק?",sbSummary:"ה-AI צדק ב-{h} מתוך {n} תחזיות שנבדקו",sbRate:"שיעור הצלחה",sbTotal:"תחזיות",sbPending:"ממתינות",sbAvgBuy:"תשואה ממוצעת להמלצות קנייה",sbEmpty:"עדיין אין תחזיות. כל ניתוח AI נשמר כאן אוטומטית עם המחיר והתאריך — ואחרי שבוע אפשר לראות אם צדק.",sbRule:"כלל הבדיקה (אחרי 7 ימים לפחות): קנייה = המחיר עלה · מכירה = המחיר ירד · החזקה = שינוי קטן מ-5%.",sbSince:"מאז",sbEntry:"מחיר בעת התחזית",sbNow:"עכשיו",sbHit:"✓ צדק",sbMiss:"✗ טעה",sbWait:"⏳ {n} ימים לבדיקה",sbTarget:"🎯 הגיע ליעד",sbRefresh:"🔄 רענן מחירים",sbCsv:"⬇ ייצוא CSV",sbClear:"🗑 נקה הכל",sbClearQ:"למחוק את כל היסטוריית התחזיות?",sbDelQ:"למחוק את התחזית הזו?",sbNote:"תחזית אחת לכל מניה ביום (ניתוח חוזר באותו יום מעדכן אותה). ביצועי עבר אינם מבטיחים ביצועים עתידיים.",
 recBUY:"קנייה",recSELL:"מכירה",recHOLD:"החזקה",
@@ -285,7 +285,7 @@ function a11yLabels(){
 
 /* ══ 7. STARTUP CHECKS — קובץ מקומי/ZIP, אחסון מתמשך ══ */
 function startupChecks(){
-  if(location.protocol==='file:'){var b=document.createElement('div');b.className='file-warn';b.innerHTML=P4('fileWarn')+' <a href="https://barakaflalo.github.io/stock-analyzer/">barakaflalo.github.io/stock-analyzer</a>';var m=document.querySelector('main');if(m)m.insertBefore(b,m.firstChild);}
+  if(location.protocol==='file:'){var b=document.createElement('div');b.className='file-warn';b.innerHTML=P4('fileWarn')+' <a href="https://stock-analyzer-appnest.pages.dev/">barakaflalo.github.io/stock-analyzer</a>';var m=document.querySelector('main');if(m)m.insertBefore(b,m.firstChild);}
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
   try{localStorage.removeItem('stockai_gemini_model');}catch(e){}
 }
@@ -303,6 +303,8 @@ var ASSIST_SUGG={
 function buildAssistantConfig(){
   window.APPNEST_ASSISTANT_CONFIG={
     appName:'StockAI',
+    lang:function(){return curLang;},
+    callAI:function(prompt){return aiText('You are the in-app assistant of StockAI. Follow the instructions in the message exactly.',prompt,{maxTokens:4000});},
     appDescription:'StockAI is a stock-analysis app for US and Israeli markets. Typing a symbol loads a free live data card with tabs: Overview (chart, metrics), Technical (composite signal, RSI/ADX/Bollinger/OBV, candlestick patterns, volatility, seasonality), Analysts, Quality (7-metric screen), Value (fair-value calculator with scenarios and implied growth), Financials, Events (SEC filings, next earnings), Company, News, and My Thesis (a personal thesis journal with AI drift check). AI analysis (user\'s own key) runs a 4-masters committee and every prediction is tracked on a Scoreboard. Help the user understand the data and navigate. IMPORTANT: everything is informational only, not investment advice — say so when giving opinions and suggest verifying with an authorized source. Answer in the user\'s language.',
     tabs:[{name:'Overview',screen:'overview'},{name:'Technical',screen:'technical'},{name:'Analysts',screen:'analysts'},{name:'Quality',screen:'quality'},{name:'Value',screen:'value'},{name:'Financials',screen:'finance'},{name:'Events',screen:'events'},{name:'Company',screen:'company'},{name:'News',screen:'news'},{name:'My Thesis',screen:'thesis'},{name:'Scoreboard',screen:'scoreboard'},{name:'Portfolio',screen:'portfolio'},{name:'Price alerts',screen:'alerts'},{name:'Watchlist',screen:'watchlist'},{name:'AI settings',screen:'settings'},{name:'Guide',screen:'guide'},{name:'About',screen:'about'}],
     fields:[{name:'symbol',label:'Stock symbol',placeholder:'AAPL / TSLA'}],

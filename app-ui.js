@@ -1,5 +1,5 @@
 /* StockAI · app-ui.js — AI result rendering, share, PWA install, utilities
-   AppNest © 2026 · load order matters: see <script> tags in stock-analyzer.html */
+   AppNest © 2026 · load order matters: see <script> tags in index.html */
 /* ══════════════════════════════════════════════════
    RENDER RESULT
 ══════════════════════════════════════════════════ */
